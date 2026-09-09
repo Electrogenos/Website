@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The Team — Electrogenos</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0F172A;
+      --blue: #3B82F6;
+      --blue-dark: #1D4ED8;
+      --muted: #6B7280;
+      --light: #F8FAFC;
+    }
+    html, body { font-family: 'Poppins', sans-serif; background: var(--light); color: var(--navy); overflow-x: hidden; }
+
+    /* ── HEADER ── */
+    .team-header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(255,255,255,.95);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(0,0,0,.07);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: 56px;
+    }
+    .team-header-back {
+      display: flex; align-items: center; gap: 8px;
+      text-decoration: none; color: var(--navy);
+      font-size: 14px; font-weight: 600;
+    }
+    .team-header-back svg { flex-shrink: 0; }
+    .team-header-logo img { height: 28px; width: auto; }
+
+    /* ── HERO ── */
+    .team-hero {
+      background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
+      padding: 48px 24px 40px;
+      text-align: center;
+    }
+    .team-hero h1 {
+      font-size: clamp(32px, 10vw, 48px);
+      font-weight: 700; color: #fff;
+      letter-spacing: -.02em; line-height: 1.05;
+      margin-bottom: 12px;
+    }
+    .team-hero p {
+      font-size: clamp(14px, 4vw, 17px);
+      color: rgba(255,255,255,.65);
+      line-height: 1.6; max-width: 320px; margin: 0 auto;
+    }
+
+    /* ── CARDS ── */
+    .team-grid {
+      padding: 28px 16px 60px;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .member-card {
+      display: flex; flex-direction: row;
+      align-items: flex-start;
+      gap: 12px;
+      background: transparent;
+      box-shadow: none;
+      border-radius: 0;
+      overflow: visible;
+    }
+    .member-photo-wrap {
+      flex: 0 0 110px; width: 110px; height: 110px;
+      background: linear-gradient(160deg, #cce4f5 0%, #4a7ab0 100%);
+      border-radius: 16px;
+      overflow: hidden; position: relative;
+      flex-shrink: 0;
+    }
+    .member-photo-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover; object-position: center 10%;
+      display: block;
+    }
+    .member-right {
+      flex: 1; min-width: 0;
+      display: flex; flex-direction: column;
+      padding: 14px 14px 12px;
+      gap: 4px;
+      background: #fff;
+      border-radius: 16px;
+      border: 1px solid #E5E7EB;
+      box-shadow: 0 2px 12px rgba(0,0,0,.06);
+    }
+    .member-name {
+      font-size: 16px; font-weight: 700;
+      color: var(--navy); letter-spacing: -.01em;
+      line-height: 1.2;
+    }
+    .member-role {
+      font-size: 13px; font-weight: 600;
+      color: var(--blue); text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    .learn-btn {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--blue); color: #fff;
+      border: none; border-radius: 100px;
+      padding: 8px 18px; font-size: 12px; font-weight: 700;
+      cursor: pointer; margin-top: 8px;
+      font-family: 'Poppins', sans-serif;
+      transition: background .2s, transform .15s;
+      white-space: nowrap; align-self: flex-start;
+    }
+    .learn-btn:hover { background: var(--blue-dark); transform: scale(1.03); }
+    .learn-btn .arr { transition: transform .25s; display: inline-block; }
+    .learn-btn.open .arr { transform: rotate(180deg); }
+    .member-bio {
+      font-size: 14px; color: var(--muted);
+      line-height: 1.6; margin-top: 6px;
+      max-height: 0; overflow: hidden;
+      transition: max-height 0.35s ease, margin-top 0.2s;
+    }
+    .member-bio.expanded { max-height: 400px; }
+    .member-bio:empty { display: none; }
+    .member-footer {
+      display: flex; align-items: center; justify-content: flex-end;
+      margin-top: 8px;
+    }
+    .member-li {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 32px; height: 32px; border-radius: 8px;
+      background: var(--navy); color: #fff;
+      font-size: 12px; font-weight: 700;
+      text-decoration: none;
+      transition: background .2s, transform .2s;
+    }
+    .member-li:hover { background: var(--blue); transform: scale(1.08); }
+
+    /* ── BACK BUTTON ── */
+    .back-bottom {
+      text-align: center; padding: 0 24px 48px;
+    }
+    .back-bottom a {
+      display: inline-block; padding: 14px 36px;
+      border: 2px solid var(--navy); border-radius: 100px;
+      color: var(--navy); font-size: 15px; font-weight: 600;
+      text-decoration: none; transition: background .2s, color .2s;
+    }
+    .back-bottom a:hover { background: var(--navy); color: #fff; }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="team-header">
+    <a href="index.html" class="team-header-back">
+      <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+        <polyline points="11,3 5,9 11,15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+      Back
+    </a>
+    <div class="team-header-logo">
+      <img src="brand_assets/logo.png" alt="Electrogenos">
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <div class="team-hero">
+    <h1>The Team</h1>
+    <p>Combining advanced research with industrial scale-up experience</p>
+  </div>
+
+  <!-- Cards -->
+  <div class="team-grid">
+
+    <div class="member-card">
+      <div class="member-photo-wrap">
+        <img src="brand_assets/team/augusto.png" alt="Augusto Bartolome">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Co-founder &amp; CTO</div>
+        <div class="member-name">Augusto Bartolome</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">Leading electrochemist with 6 years of industry experience. 1st class honours in Materials Science from Manchester, specialising in graphene and nanotechnology. Royal Commission for the Exhibition of 1851 Research Fellow, PhD candidate at UCL's Electrochemical Innovation Lab, and holder of two patents in hydrogen production electrocatalysts.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/augusto-bartolome/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#1a2a42,#2a4070);">
+        <img src="brand_assets/team/alfredo.png" alt="Alfredo Saenger">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Co-founder &amp; CEO</div>
+        <div class="member-name">Alfredo Saenger</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">MSc Finance from ESADE and former BCG consultant, advising governments and corporates on energy investments and sustainability roadmaps. Leads Electrogenos's strategic direction and fundraising, securing substantial capital in a short period through his extensive network and passion for sustainable energy.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/alfredosaenger/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#c0cede,#4a7aaa);">
+        <img src="brand_assets/team/carlos.png" alt="Carlos">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Head of Technical Growth</div>
+        <div class="member-name">Carlos</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">PhD in Solid Oxide Fuel Cells (2005) and 20 years in renewable hydrogen across the UK, France, Denmark, Norway, Japan and beyond. Former academic turned industry leader in hydrogen and Power-to-X, now helping customers and strategic stakeholders unlock more efficient, cost-effective green hydrogen with Electrogenos technology.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/carlosbernuy/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#1e3a5f,#2d5b8e);">
+        <img src="brand_assets/team/lawrence.png" alt="Lawrence Flinn">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Principal Engineer</div>
+        <div class="member-name">Lawrence Flinn</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">MEng Mechanical Engineering from UCL. Previously designed megawatt-scale solid oxide fuel cell and electrolyser systems at Ceres Power. Broad experience across automotive, marine, industrial, and new energy sectors — from concept through to high-volume manufacture.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/lawrence-flinn-design-engineering-leader/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#b8ccde,#5a8ab5);">
+        <img src="brand_assets/team/jack.png" alt="Jack Mullett">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Systems Engineer</div>
+        <div class="member-name">Jack Mullett</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">MEng in Mechanical Systems &amp; Design, MSc in Engineering Application of Lasers, and PhD in Laser-Induced Ignition Systems. Career spanning academia from Research Associate to Senior Lecturer, with deep hands-on expertise in prototyping and testing.</div>
+        <div class="member-footer">
+          <a href="#" class="member-li">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#2a3f5f,#1a2a42);">
+        <img src="brand_assets/team/divya.png" alt="Divya Madhuri">
+      </div>
+      <div class="member-right">
+        <div class="member-role">ElectroChemist</div>
+        <div class="member-name">Divya Madhuri</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">Seasoned electrochemist with 10+ years in materials chemistry and electrocatalysis. PhD from the University of Hyderabad and Marie-Curie Individual Fellow for postdoctoral work at the University of Birmingham.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/udivyamadhuri/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#1e3a5f,#2d5b8e);">
+        <img src="brand_assets/team/dilnur.png" alt="Dilnur">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Founder's Associate</div>
+        <div class="member-name">Dilnur</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">BA in Economics from NYU Abu Dhabi with Finance and Data Science specialisations. Leads grants, legal and commercial strategy at Electrogenos.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/dilnur-yermukanova/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#c8d8e8,#4a7ab0);">
+        <img src="brand_assets/team/diana.png" alt="Diana">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Founder's Associate</div>
+        <div class="member-name">Diana</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">BA in Business supporting the CEO with strategy &amp; operations.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/diana-alibekova/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+    <div class="member-card">
+      <div class="member-photo-wrap" style="background:linear-gradient(160deg,#2a3f5f,#1a2a42);">
+        <img src="brand_assets/team/sophiya.png" alt="Sophiya">
+      </div>
+      <div class="member-right">
+        <div class="member-role">Founder's Associate</div>
+        <div class="member-name">Sophiya</div>
+        <button class="learn-btn" onclick="toggleBio(this)">Learn more <span class="arr">▾</span></button>
+        <div class="member-bio">Bachelors in Business and Film from NYU Abu Dhabi and an ACCA student, supporting the CEO in fundraising, private finance and accounting.</div>
+        <div class="member-footer">
+          <a href="https://www.linkedin.com/in/123sophiya456/" class="member-li" target="_blank" rel="noopener">in</a>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="back-bottom">
+    <a href="index.html">← Back to Electrogenos</a>
+  </div>
+
+<script>
+function toggleBio(btn) {
+  var bio = btn.nextElementSibling;
+  var open = bio.classList.toggle('expanded');
+  btn.classList.toggle('open', open);
+  btn.childNodes[0].textContent = open ? 'Show less ' : 'Learn more ';
+}
+</script>
+</body>
+</html>
