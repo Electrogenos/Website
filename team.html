@@ -8,15 +8,59 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
+    /* ════════════════════════════════════════════════════════════════
+       Mobile-first: base rules target 320px, min-width queries layer on
+       640 / 768 / 1024 / 1280px. No fixed widths, no overflow-x clamps.
+       ════════════════════════════════════════════════════════════════ */
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
-      --navy: #0F172A;
-      --blue: #3B82F6;
+      /* Brand book colours (p.7) — kept in step with index.html */
+      --navy: #0C1826;            /* Navy Blue */
+      --blue: #4285F4;            /* Electrogenos Blue */
+      --sky:  #92D7F8;            /* Sky Blue */
       --blue-dark: #1D4ED8;
       --muted: #6B7280;
       --light: #F8FAFC;
+      --body-light: #475569;
+      --body-dark:  #CBD5E1;
+      --pad-x: 1.25rem;              /* container gutter: 20 / 32 / 40px */
+      --maxw: 75rem;                  /* 1200px content ceiling */
+      --tap: 2.75rem;                 /* 44px minimum touch target */
     }
-    html, body { font-family: 'Poppins', sans-serif; background: var(--light); color: var(--navy); overflow-x: hidden; }
+
+    /* ══ TYPOGRAPHY SYSTEM — same definitions as index.html ══ */
+    .t-h1 {
+      font-size: 2.25rem; font-weight: 800; line-height: 1.25;
+      letter-spacing: -.02em; color: var(--navy); margin: 0;
+    }
+    .t-deck {
+      font-size: 1.125rem; font-weight: 300; line-height: 1.5;
+      color: var(--body-light); margin: 0;
+    }
+    .t-body { font-size: 1rem; font-weight: 400; line-height: 1.625; color: var(--body-light); }
+    .t-accent { color: var(--blue); }
+    .on-dark .t-h1 { color: #fff; }
+    .on-dark .t-deck, .on-dark .t-body { color: var(--body-dark); }
+    .sec-center { text-align: center; }
+
+    /* ══ SHARED LAYOUT CONTAINER — same definition as index.html ══ */
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: var(--maxw);
+      margin-inline: auto;
+      padding-inline: var(--pad-x);
+    }
+    @media (min-width: 48rem) { :root { --pad-x: 2rem; } .t-h1 { font-size: 3rem; } .t-deck { font-size: 1.25rem; } }
+    @media (min-width: 64rem) { :root { --pad-x: 2.5rem; } .t-h1 { font-size: 3.75rem; } }
+    html, body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--light); color: var(--navy);
+      overflow-wrap: anywhere;        /* long names/URLs cannot widen the page */
+    }
+    img, svg { max-width: 100%; }
+    img { height: auto; }
+    [id] { scroll-margin-top: 4rem; }
 
     /* ── HEADER ── */
     .team-header {
@@ -25,55 +69,46 @@
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(0,0,0,.07);
+    }
+    .team-header-inner {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; height: 56px;
+      gap: 1rem; min-height: 3.5rem;
     }
     .team-header-back {
-      display: flex; align-items: center; gap: 8px;
+      display: flex; align-items: center; gap: .5rem;
+      min-height: var(--tap);
       text-decoration: none; color: var(--navy);
-      font-size: 14px; font-weight: 600;
+      font-size: .875rem; font-weight: 600;
     }
     .team-header-back svg { flex-shrink: 0; }
-    .team-header-logo img { height: 28px; width: auto; }
+    .team-header-logo img { height: 1.75rem; width: auto; display: block; }
 
     /* ── HERO ── */
     .team-hero {
       background: linear-gradient(135deg, var(--navy) 0%, #1e3a5f 100%);
-      padding: 48px 24px 40px;
+      padding-block: clamp(3rem, 8vw, 5rem) clamp(2.5rem, 6vw, 4rem);
       text-align: center;
     }
-    .team-hero h1 {
-      font-size: clamp(32px, 10vw, 48px);
-      font-weight: 700; color: #fff;
-      letter-spacing: -.02em; line-height: 1.05;
-      margin-bottom: 12px;
-    }
-    .team-hero p {
-      font-size: clamp(14px, 4vw, 17px);
-      color: rgba(255,255,255,.65);
-      line-height: 1.6; max-width: 320px; margin: 0 auto;
-    }
+    .team-hero h1 { margin-bottom: .75rem; }   /* type comes from .t-h1 */
+    .team-hero p  { max-width: 30rem; margin: 0 auto; }
 
     /* ── CARDS ── */
     .team-grid {
-      padding: 28px 16px 60px;
-      display: flex; flex-direction: column; gap: 16px;
+      padding-block: clamp(1.75rem, 4vw, 3rem) clamp(3.5rem, 8vw, 5rem);
+      display: grid; grid-template-columns: 1fr;
+      gap: 1rem;
     }
     .member-card {
-      display: flex; flex-direction: row;
-      align-items: flex-start;
-      gap: 12px;
-      background: transparent;
-      box-shadow: none;
-      border-radius: 0;
-      overflow: visible;
+      display: flex; flex-direction: row; align-items: flex-start;
+      gap: .75rem; min-width: 0;
     }
     .member-photo-wrap {
-      flex: 0 0 110px; width: 110px; height: 110px;
+      /* Eases down on 320px screens, settles at the original 110px by 380px. */
+      flex: 0 0 clamp(5rem, 29vw, 6.875rem);
+      aspect-ratio: 1;
       background: linear-gradient(160deg, #cce4f5 0%, #4a7ab0 100%);
       border-radius: 16px;
       overflow: hidden; position: relative;
-      flex-shrink: 0;
     }
     .member-photo-wrap img {
       width: 100%; height: 100%;
@@ -81,31 +116,23 @@
       display: block;
     }
     .member-right {
-      flex: 1; min-width: 0;
+      flex: 1 1 auto; min-width: 0;
       display: flex; flex-direction: column;
-      padding: 14px 14px 12px;
-      gap: 4px;
-      background: #fff;
-      border-radius: 16px;
+      padding: .875rem .875rem .75rem;
+      gap: .25rem;
+      background: #fff; border-radius: 16px;
       border: 1px solid #E5E7EB;
       box-shadow: 0 2px 12px rgba(0,0,0,.06);
     }
-    .member-name {
-      font-size: 16px; font-weight: 700;
-      color: var(--navy); letter-spacing: -.01em;
-      line-height: 1.2;
-    }
-    .member-role {
-      font-size: 13px; font-weight: 600;
-      color: var(--blue); text-transform: uppercase;
-      letter-spacing: .05em;
-    }
+    .member-name { font-size: 1rem; font-weight: 700; color: var(--navy); letter-spacing: -.01em; line-height: 1.2; }
+    .member-role { font-size: .8125rem; font-weight: 600; color: var(--blue); text-transform: uppercase; letter-spacing: .05em; }
     .learn-btn {
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; justify-content: center; gap: .375rem;
+      min-height: var(--tap);                 /* was ~30px — below the tap target */
       background: var(--blue); color: #fff;
       border: none; border-radius: 100px;
-      padding: 8px 18px; font-size: 12px; font-weight: 700;
-      cursor: pointer; margin-top: 8px;
+      padding: .5rem 1.125rem; font-size: .75rem; font-weight: 700;
+      cursor: pointer; margin-top: .5rem;
       font-family: 'Poppins', sans-serif;
       transition: background .2s, transform .15s;
       white-space: nowrap; align-self: flex-start;
@@ -114,44 +141,70 @@
     .learn-btn .arr { transition: transform .25s; display: inline-block; }
     .learn-btn.open .arr { transform: rotate(180deg); }
     .member-bio {
-      font-size: 14px; color: var(--muted);
-      line-height: 1.6; margin-top: 6px;
+      font-size: 1rem; line-height: 1.625;    /* shared body values */
+      color: var(--body-light);
+      margin-top: .375rem;
       max-height: 0; overflow: hidden;
-      transition: max-height 0.35s ease, margin-top 0.2s;
+      transition: max-height .35s ease, margin-top .2s;
     }
-    .member-bio.expanded { max-height: 400px; }
+    /* Generous ceiling: the longest bio in a 320px column is ~550px tall, so
+       the old 400px cap truncated it mid-sentence. */
+    .member-bio.expanded { max-height: 60rem; }
     .member-bio:empty { display: none; }
-    .member-footer {
-      display: flex; align-items: center; justify-content: flex-end;
-      margin-top: 8px;
-    }
+    .member-footer { display: flex; align-items: center; justify-content: flex-end; margin-top: .5rem; }
     .member-li {
       display: inline-flex; align-items: center; justify-content: center;
-      width: 32px; height: 32px; border-radius: 8px;
+      width: var(--tap); height: var(--tap); border-radius: 8px;
       background: var(--navy); color: #fff;
-      font-size: 12px; font-weight: 700;
+      font-size: .75rem; font-weight: 700;
       text-decoration: none;
       transition: background .2s, transform .2s;
     }
     .member-li:hover { background: var(--blue); transform: scale(1.08); }
 
     /* ── BACK BUTTON ── */
-    .back-bottom {
-      text-align: center; padding: 0 24px 48px;
-    }
+    .back-bottom { text-align: center; padding-block: 0 3rem; }
     .back-bottom a {
-      display: inline-block; padding: 14px 36px;
+      display: inline-flex; align-items: center; justify-content: center;
+      min-height: var(--tap);
+      padding: .875rem 2.25rem;
       border: 2px solid var(--navy); border-radius: 100px;
-      color: var(--navy); font-size: 15px; font-weight: 600;
+      color: var(--navy); font-size: .9375rem; font-weight: 600;
       text-decoration: none; transition: background .2s, color .2s;
     }
     .back-bottom a:hover { background: var(--navy); color: #fff; }
+
+    /* ── 640px ── */
+    @media (min-width: 40rem) {
+      .team-hero p { max-width: 30rem; }
+      .member-right { padding: 1.125rem 1.25rem 1rem; }
+    }
+
+    /* ── 768px: two columns ── */
+    @media (min-width: 48rem) {
+      .team-grid { grid-template-columns: repeat(2, 1fr); gap: 1.25rem; }
+      .member-photo-wrap { flex-basis: 7.5rem; }
+    }
+
+    /* ── 1024px ── */
+    @media (min-width: 64rem) {
+      .team-grid { gap: 1.5rem; }
+      .member-photo-wrap { flex-basis: 8.5rem; }
+      .member-name { font-size: 1.125rem; }
+    }
+
+    /* ── 1280px: three columns ── */
+    @media (min-width: 80rem) {
+      .team-grid { grid-template-columns: repeat(3, 1fr); }
+      .member-photo-wrap { flex-basis: 7.5rem; }
+    }
   </style>
 </head>
 <body>
 
   <!-- Header -->
   <header class="team-header">
+    <div class="container team-header-inner">
     <a href="index.html" class="team-header-back">
       <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
         <polyline points="11,3 5,9 11,15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -161,16 +214,19 @@
     <div class="team-header-logo">
       <img src="brand_assets/logo.png" alt="Electrogenos">
     </div>
+    </div>
   </header>
 
   <!-- Hero -->
-  <div class="team-hero">
-    <h1>The Team</h1>
-    <p>Combining advanced research with industrial scale-up experience</p>
+  <div class="team-hero on-dark sec-center">
+    <div class="container">
+      <h1 class="t-h1">The team</h1>
+      <p class="t-deck">Combining advanced research with industrial scale-up experience</p>
+    </div>
   </div>
 
   <!-- Cards -->
-  <div class="team-grid">
+  <div class="container team-grid">
 
     <div class="member-card">
       <div class="member-photo-wrap">
@@ -309,7 +365,7 @@
 
   </div>
 
-  <div class="back-bottom">
+  <div class="container back-bottom">
     <a href="index.html">← Back to Electrogenos</a>
   </div>
 
