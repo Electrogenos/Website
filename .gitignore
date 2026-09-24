@@ -1,0 +1,33 @@
+# OS files
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Editor / tooling
+.vscode/
+.idea/
+*.swp
+
+# Secrets — never commit
+.env
+.env.*
+*.pem
+*.key
+
+# Dependencies / build output
+node_modules/
+dist/
+build/
+.cache/
+
+# Local scratch
+*.bak
+*.pre-size
+
+# Claude Code local settings
+.claude/
+
+# Source originals for brand_assets/industries/*.avif — byte-identical
+# duplicates, never referenced by the site.
+brand_assets/stock images/
