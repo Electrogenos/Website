@@ -595,23 +595,33 @@
       background: radial-gradient(circle, #dbeafe 0%, #eff6ff 60%, transparent 100%);
     }
     .stg-visual img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
-    .stg-stage {
+
+    /* ── Pillars ──
+       Below 1024px (and under reduced motion) every pillar is a fully
+       expanded card. The desktop block turns the same markup into a
+       scroll-driven stack. */
+    .stg-pillar {
       position: relative; display: block; padding: 1rem;
       background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
       box-shadow: 0 2px 12px rgba(0,0,0,.06);
     }
-    .stg-inner { display: block; max-width: 100%; }
-    .stg-copy { flex: 1; min-width: 0; }
-    .stg-head-row { display: flex; align-items: flex-start; gap: 1rem; }
+    .stg-ph {
+      display: flex; align-items: flex-start; gap: 1rem;
+      width: 100%; margin: 0; padding: 0;
+      background: none; border: 0; text-align: left;
+      font: inherit; color: inherit; cursor: default;
+    }
+    .stg-ph-text { display: block; min-width: 0; }
     .stg-step-n { width: 3.5rem; height: 3.5rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; }
     .stg-step-n img { width: 100%; height: 100%; object-fit: contain;
       filter: brightness(0) saturate(100%) invert(12%) sepia(80%) saturate(800%) hue-rotate(210deg) brightness(90%); }
-    .stg-item-title { font-size: 1.25rem; font-weight: 700; color: var(--blue); margin-bottom: .5rem; }
-    .stg-item-sub   { font-size: 1rem; font-weight: 500; color: var(--blue); margin-top: 2px; margin-bottom: 1rem; }
+    .stg-item-title { display: block; font-size: 1.25rem; font-weight: 700; color: var(--blue); margin-bottom: .5rem; }
+    .stg-item-sub   { display: block; font-size: 1rem; font-weight: 500; color: var(--blue); margin-top: 2px; margin-bottom: 1rem; }
+    /* Collapsible panel: 0fr -> 1fr animates height with no magic numbers. */
+    .stg-panel { display: grid; grid-template-rows: 1fr; }
+    .stg-panel > div { overflow: hidden; min-height: 0; }
     .stg-copy ul { list-style: none; max-width: 42.5rem; display: flex; flex-direction: column; gap: .625rem; margin: .625rem 0 1.375rem; }
     .stg-copy ul li { font-size: 1rem; color: var(--muted); }
-    .mob-hide { display: none; }
-    .stg-dot-nav, #stgPb { display: none; }
 
     /* ── OUR ADVANTAGE ────────────────────────────────────────────────── */
     .advantage { position: relative; }
@@ -1095,9 +1105,10 @@
       .stg-frame {
         position: sticky; top: 0; height: 100vh;
         display: flex; align-items: center;
-        /* Clears the fixed navbar, then centres the block in what is left,
-           so it never sits under or against the nav. */
-        padding: calc(var(--nav-h) + 2rem) 0 2rem;
+        /* Clears the fixed navbar, and reserves the 160px ::after fade at the
+           bottom, so the block centres in the genuinely readable area and the
+           last pillar never washes out inside the gradient. */
+        padding: calc(var(--nav-h) + 2rem) 0 10rem;
       }
       .stg-frame::after {
         content: ''; display: block; position: absolute;
@@ -1121,67 +1132,96 @@
 
       .stg-visual { max-width: 25rem; margin-inline: 0; }   /* left edge = eyebrow/H2 */
 
-      /* Panels crossfade stacked on top of each other. min-height keeps the
-         column from collapsing now that the panels are out of flow. */
+      /* The column is pinned by the script to the height of its tallest state
+         (three collapsed headers plus the longest open panel), so the heading
+         and the product image never move as pillars open and close. */
       .stg-panels {
-        position: relative; display: block;
-        min-height: 17rem; min-width: 0; z-index: 1;
+        position: relative; display: flex; flex-direction: column;
+        justify-content: flex-start; gap: 1.25rem;
+        min-width: 0; z-index: 1;
       }
-      .stg-stage {
-        position: absolute; inset: 0;
-        display: flex; align-items: center;
-        padding: 0; margin: 0;
-        background: none; border: none; border-radius: 0; box-shadow: none;
-        opacity: 0; pointer-events: none; transition: opacity .45s ease;
+      .stg-pillar {
+        padding: .25rem 0 .25rem 1.25rem;
+        background: none; border: 0; border-radius: 0; box-shadow: none;
+        border-left: 2px solid transparent;
+        transition: opacity .45s ease, transform .45s ease, border-color .45s ease;
       }
-      .stg-stage.active { opacity: 1; pointer-events: auto; }
-      .stg-inner { display: block; width: 100%; }
+      .stg-pillar.is-open { border-left-color: var(--blue); }
+      /* Not yet reached: invisible and inert, but still occupying its space. */
+      .stg-pillar.is-hidden { opacity: 0; transform: translateY(16px); pointer-events: none; }
 
-      /* Compact panel type so the panel reads as a companion to the image
-         rather than out-shouting the H2 above it. */
-      .stg-head-row { gap: 1.25rem; align-items: center; }
+      .stg-ph { align-items: center; gap: 1.25rem; cursor: pointer; }
+      .stg-ph:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
       .stg-step-n {
         width: clamp(3rem, 4.5vw, 4rem); height: clamp(3rem, 4.5vw, 4rem);
-        margin-bottom: 0; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .05s, transform .4s ease .05s;
+        margin-bottom: 0;
+        transition: width .45s ease, height .45s ease;
       }
       .stg-step-n img { filter: none; }
-      .stg-stage.active .stg-step-n { opacity: 1; transform: none; }
       .stg-item-title {
         font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 700; color: var(--navy);
-        margin-bottom: .25rem; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .12s, transform .4s ease .12s;
+        margin-bottom: .25rem; transition: font-size .45s ease;
       }
-      .stg-stage.active .stg-item-title { opacity: 1; transform: none; }
       .stg-item-sub {
         font-size: clamp(1rem, 1.4vw, 1.25rem); font-weight: 600; color: var(--blue);
-        margin: 0; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .18s, transform .4s ease .18s;
+        margin: 0;
       }
-      .stg-stage.active .stg-item-sub { opacity: 1; transform: none; }
-      .stg-copy ul {
-        margin: 1.25rem 0 0; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .22s, transform .4s ease .22s;
-      }
-      .stg-stage.active .stg-copy ul { opacity: 1; transform: none; }
-      .stg-copy ul li { font-size: clamp(.9375rem, 1.2vw, 1.0625rem); }
-      .mob-hide { display: inline; }
+      /* Collapsed: icon and title shrink so three headers plus one open panel
+         fit the frame without being clipped by the bottom fade. */
+      .stg-pillar.is-collapsed .stg-step-n { width: 2.5rem; height: 2.5rem; }
+      .stg-pillar.is-collapsed .stg-item-title { font-size: 1.25rem; }
 
-      .stg-dot-nav {
-        display: flex; flex-direction: column; gap: 1.875rem;
-        position: fixed; right: 2rem; top: 50%; transform: translateY(-50%);
-        z-index: 999; opacity: 0; pointer-events: none; transition: opacity .3s;
+      .stg-panel { grid-template-rows: 0fr; transition: grid-template-rows .45s ease; }
+      .stg-pillar.is-open .stg-panel { grid-template-rows: 1fr; }
+      .stg-copy ul {
+        margin: 1.25rem 0 0; opacity: 0; transition: opacity .3s ease;
       }
-      .stg-dot-nav.visible { opacity: 1; pointer-events: auto; }
-      .stg-dot {
-        position: relative; width: .875rem; height: .875rem; border-radius: 50%;
-        background: #D1D5DB; border: none; cursor: pointer; padding: 0;
-        transition: background .3s, transform .3s;
-      }
-      .stg-dot::after { content: ''; position: absolute; inset: -.9375rem; }  /* 44px hit area */
-      .stg-dot.on { background: var(--blue); transform: scale(1.4); }
-      #stgPb { display: block; position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); width: 0; z-index: 1000; transition: width .08s linear; opacity: 0; }
-      #stgPb.visible { opacity: 1; }
+      .stg-pillar.is-open .stg-copy ul { opacity: 1; transition-delay: .15s; }
+      .stg-copy ul li { font-size: clamp(.9375rem, 1.2vw, 1.0625rem); }
+
+      /* Height measuring pass: no transitions, so scrollHeight is read at the
+         final size of each state rather than mid-animation. */
+      .stg-measuring .stg-panel,
+      .stg-measuring .stg-pillar,
+      .stg-measuring .stg-step-n,
+      .stg-measuring .stg-item-title,
+      .stg-measuring .stg-copy ul { transition: none !important; }
+    }
+
+    /* Short desktop viewports (<=900px tall): tighten the stack so three
+       collapsed headers plus the longest open panel finish above the
+       .stg-frame bottom fade instead of washing out inside it. */
+    @media (min-width: 64rem) and (max-height: 56.25rem) {
+      .stg-frame { padding-top: calc(var(--nav-h) + 1rem); }
+      .stg-header { margin-bottom: 1.5rem; }
+      .stg-panels { gap: .75rem; }
+      .stg-item-title { font-size: clamp(1.375rem, 2vw, 1.75rem); }
+      .stg-item-sub { font-size: 1rem; }
+      .stg-step-n { width: clamp(2.75rem, 3.6vw, 3.25rem); height: clamp(2.75rem, 3.6vw, 3.25rem); }
+      .stg-pillar.is-collapsed .stg-step-n { width: 2.25rem; height: 2.25rem; }
+      .stg-pillar.is-collapsed .stg-item-title { font-size: 1.125rem; }
+      .stg-pillar.is-collapsed .stg-item-sub { font-size: .9375rem; }
+      .stg-copy ul { margin-top: .75rem; gap: .5rem; }
+      .stg-copy ul li { font-size: .9375rem; }
+    }
+
+    /* Very short desktop viewports (<=800px tall): at 25rem the square image
+       is the tallest element in the row, so it sets the block height. Trim it
+       until the pillar column is the tallest thing again. */
+    @media (min-width: 64rem) and (max-height: 50rem) {
+      .stg-visual { max-width: 21rem; }
+    }
+
+    /* Reduced motion: no pinning, no scroll scene — the same static, fully
+       expanded stack the small screens get. */
+    @media (min-width: 64rem) and (prefers-reduced-motion: reduce) {
+      .stg-container { height: auto; }
+      .stg-frame { position: relative; height: auto; }
+      .stg-panels { height: auto !important; }
+      .stg-pillar { opacity: 1 !important; transform: none !important; border-left-color: var(--blue); }
+      .stg-panel { grid-template-rows: 1fr !important; }
+      .stg-copy ul { opacity: 1 !important; }
+      .stg-ph { cursor: default; }
     }
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1440,80 +1480,13 @@
       <img src="brand_assets/electrolyzerreal.png" alt="Electrogenos electrolyser">
     </div>
 
-    <div class="stg-panels">
-
-    <!-- Stage 1: Cost -->
-    <div class="stg-stage active" id="stgSt0">
-      <div class="stg-inner">
-        <div class="stg-copy">
-          <div class="stg-head-row">
-            <div class="stg-step-n"><img src="brand_assets/cost.png" alt="Cost"></div>
-            <div>
-              <div class="stg-item-title">Cost</div>
-              <div class="stg-item-sub">Matches the world's lowest stack prices</div>
-            </div>
-          </div>
-          <ul>
-            <li>5x lower than Western-manufactured stacks</li>
-            <li>Surpasses global best-in-class cost benchmarks</li>
-            <li>No precious or rare materials, no supply chain risk</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stage 2: Efficiency -->
-    <div class="stg-stage" id="stgSt1">
-      <div class="stg-inner">
-        <div class="stg-copy">
-          <div class="stg-head-row">
-            <div class="stg-step-n"><img src="brand_assets/efficiency.png" alt="Efficiency"></div>
-            <div>
-              <div class="stg-item-title">Efficiency</div>
-              <div class="stg-item-sub">+97% HHV at 0.5 A/cm²</div>
-            </div>
-          </div>
-          <ul>
-            <li>High efficiency across ultra-wide operating range</li>
-            <li>Extended operating hours at lower power output</li>
-            <li>Capacity to absorb curtailments and price volatility</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stage 3: Durability -->
-    <div class="stg-stage" id="stgSt2">
-      <div class="stg-inner">
-        <div class="stg-copy">
-          <div class="stg-head-row">
-            <div class="stg-step-n"><img src="brand_assets/durability.png" alt="Durability"></div>
-            <div>
-              <div class="stg-item-title">Durability</div>
-              <div class="stg-item-sub">Bankable lifetime<span class="mob-hide"> under intermittency</span></div>
-            </div>
-          </div>
-          <ul>
-            <li>Built for renewables ramping, shutdowns, cycling</li>
-            <li>&gt;10,000 cycles and thousands of operating hours</li>
-            <li>Resistant to reverse currents and impurity poisoning</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    </div>
+    <!-- Pillars render from the PILLARS array in the page script. -->
+    <div class="stg-panels" id="stgPanels"></div>
     </div>
     </div>
     </div>
   </div>
 </div>
-<div class="stg-dot-nav" id="stgDotNav">
-  <button type="button" class="stg-dot on" onclick="stgJumpTo(0)" title="Cost"></button>
-  <button type="button" class="stg-dot" onclick="stgJumpTo(1)" title="Efficiency"></button>
-  <button type="button" class="stg-dot" onclick="stgJumpTo(2)" title="Durability"></button>
-</div>
-<div id="stgPb"></div>
 
 
 <!-- ══ OUR ADVANTAGE ══ -->
@@ -2369,45 +2342,167 @@
     sync();
   })();
 
-  // ── OUR SOLUTION (scroll-driven stages) ──
-  (function() {
-    const sc = document.getElementById('stgContainer');
-    const pb = document.getElementById('stgPb');
-    const dotNav = document.getElementById('stgDotNav');
-    if (!sc) return;
-    const stages = sc.querySelectorAll('.stg-stage');
-    const dots = dotNav ? dotNav.querySelectorAll('.stg-dot') : [];
-    const N = stages.length;
-    let current = 0;
-    function activate(idx) {
-      if (idx === current) return;
-      stages.forEach((s, i) => s.classList.toggle('active', i === idx));
-      dots.forEach((d, i) => d.classList.toggle('on', i === idx));
-      current = idx;
+  // ── OUR SOLUTION (scroll-driven stacking pillars) ──
+  (function () {
+    /* Scroll-progress boundaries through #stgContainer. Tune timing here. */
+    const STG_PHASE = { eff: 0.30, dur: 0.60, summary: 0.85 };
+
+    /* Single source of truth: desktop and mobile render from this. */
+    const PILLARS = [
+      { id: 'cost', title: 'Cost', icon: 'brand_assets/cost.png',
+        sub: "Matches the world's lowest stack prices",
+        bullets: ['5x lower than Western-manufactured stacks',
+                  'High current density: more hydrogen from every stack',
+                  'No platinum-group metals or iridium'] },
+      { id: 'eff', title: 'Efficiency', icon: 'brand_assets/efficiency.png',
+        sub: '97% HHV at 0.5 A/cm²',
+        bullets: ['High efficiency across a wide operating range',
+                  'Keeps producing at low load when renewable output drops',
+                  'Absorbs curtailment and price volatility'] },
+      { id: 'dur', title: 'Durability', icon: 'brand_assets/durability.png',
+        sub: 'Engineered for intermittent renewables',
+        bullets: ['Built for ramping, shutdowns and cycling',
+                  'Validated over >10,000 start-stop cycles',
+                  'Resistant to reverse currents and impurity poisoning'] },
+    ];
+
+    const sc     = document.getElementById('stgContainer');
+    const panels = document.getElementById('stgPanels');
+    if (!sc || !panels) return;
+
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    panels.innerHTML = PILLARS.map((p, i) =>
+      '<div class="stg-pillar" data-i="' + i + '">' +
+        '<button type="button" class="stg-ph" id="stgPh' + i + '"' +
+                ' aria-expanded="true" aria-controls="stgPanel' + i + '">' +
+          '<span class="stg-step-n"><img src="' + esc(p.icon) + '" alt="" loading="lazy"></span>' +
+          '<span class="stg-ph-text">' +
+            '<span class="stg-item-title">' + esc(p.title) + '</span>' +
+            '<span class="stg-item-sub">' + esc(p.sub) + '</span>' +
+          '</span>' +
+        '</button>' +
+        '<div class="stg-panel" id="stgPanel' + i + '" role="region" aria-labelledby="stgPh' + i + '">' +
+          '<div><div class="stg-copy"><ul>' +
+            p.bullets.map(b => '<li>' + esc(b) + '</li>').join('') +
+          '</ul></div></div>' +
+        '</div>' +
+      '</div>').join('');
+
+    const items  = [...panels.querySelectorAll('.stg-pillar')];
+    const heads  = [...panels.querySelectorAll('.stg-ph')];
+    const N      = items.length;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const isStack = () => MQ_STG.matches && !reduce.matches;
+
+    /* step: 0..N-1 = that pillar open and the ones before it collapsed;
+       N = summary, everything visible and collapsed. openIdx overrides the
+       open pillar once the visitor clicks one in the summary state. */
+    let step = 0, openIdx = -1, pinned = 0;
+
+    function paint(st, open) {
+      items.forEach((el, i) => {
+        const reached = st === N ? true : i <= st;
+        const isOpen  = st === N ? i === open : i === st;
+        el.classList.toggle('is-hidden', !reached);
+        el.classList.toggle('is-open', reached && isOpen);
+        el.classList.toggle('is-collapsed', reached && !isOpen);
+        heads[i].setAttribute('aria-expanded', String(reached && isOpen));
+        /* Unreached pillars keep their space but must not take focus. */
+        heads[i].tabIndex = reached ? 0 : -1;
+        heads[i].setAttribute('aria-hidden', reached ? 'false' : 'true');
+      });
     }
-    function update() {
-      if (!MQ_STG.matches) {   // static card stack below 1024px
-        if (pb) pb.classList.remove('visible');
-        if (dotNav) dotNav.classList.remove('visible');
-        return;
+
+    /* Pin the column to its tallest state so nothing above it ever moves. */
+    function measure() {
+      if (!isStack()) { panels.style.height = ''; return; }
+      const prevStep = step, prevOpen = openIdx;
+      panels.style.height = 'auto';
+      sc.classList.add('stg-measuring');
+      let max = 0;
+      for (let i = 0; i < N; i++) {
+        paint(i, -1);
+        max = Math.max(max, panels.scrollHeight);
       }
-      const rect = sc.getBoundingClientRect();
-      const H = sc.offsetHeight, viewH = window.innerHeight;
-      const inView = rect.top < viewH && rect.bottom > 0;
-      if (pb) pb.classList.toggle('visible', inView);
-      if (dotNav) dotNav.classList.toggle('visible', inView);
-      const progress = Math.max(0, Math.min(1, -rect.top / (H - viewH)));
-      if (pb) pb.style.width = (progress * 100) + '%';
-      activate(Math.min(N - 1, Math.floor(progress * N)));
+      paint(N, -1);                                  // summary: all collapsed
+      max = Math.max(max, panels.scrollHeight);
+      pinned = Math.ceil(max);
+      panels.style.height = pinned + 'px';
+      paint(prevStep, prevOpen);
+      /* Force a reflow before re-enabling transitions, or restoring the
+         previous state animates from the measuring state. */
+      void panels.offsetHeight;
+      sc.classList.remove('stg-measuring');
     }
+
+    function progress() {
+      const rect = sc.getBoundingClientRect();
+      const range = sc.offsetHeight - window.innerHeight;
+      if (range <= 0) return 0;
+      return Math.max(0, Math.min(1, -rect.top / range));
+    }
+
+    function stepFor(p) {
+      if (p >= STG_PHASE.summary) return N;
+      if (p >= STG_PHASE.dur)     return 2;
+      if (p >= STG_PHASE.eff)     return 1;
+      return 0;
+    }
+
+    function update() {
+      if (!isStack()) return;
+      const next = stepFor(progress());
+      if (next === step) return;
+      if (next !== N) openIdx = -1;      // leaving summary drops any manual open
+      step = next;
+      paint(step, openIdx);
+    }
+
+    /* Start of each pillar's band, used by the click-to-jump behaviour. */
+    const BAND = [0, STG_PHASE.eff, STG_PHASE.dur];
+    function jumpTo(i) {
+      const range = sc.offsetHeight - window.innerHeight;
+      window.scrollTo({
+        top: sc.offsetTop + Math.min(1, BAND[i] + 0.02) * range,
+        behavior: reduce.matches ? 'auto' : 'smooth',
+      });
+    }
+
+    heads.forEach((h, i) => h.addEventListener('click', () => {
+      if (!isStack()) return;
+      if (step === N) {                  // summary: toggle, one open at a time
+        openIdx = openIdx === i ? -1 : i;
+        paint(step, openIdx);
+      } else if (i <= step) {            // before summary: scroll to that step
+        jumpTo(i);
+      }
+    }));
+
+    function applyMode() {
+      if (isStack()) {
+        measure();
+        step = stepFor(progress()); openIdx = -1;
+        paint(step, openIdx);
+      } else {
+        /* Static stack: every pillar visible and open. */
+        panels.style.height = '';
+        items.forEach((el, i) => {
+          el.classList.remove('is-hidden', 'is-collapsed');
+          el.classList.add('is-open');
+          heads[i].setAttribute('aria-expanded', 'true');
+          heads[i].setAttribute('aria-hidden', 'false');
+          heads[i].tabIndex = 0;
+        });
+      }
+    }
+
     window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
-    MQ_STG.addEventListener('change', update);
-    update();
-    window.stgJumpTo = function(idx) {
-      const H = sc.offsetHeight, viewH = window.innerHeight;
-      window.scrollTo({ top: sc.offsetTop + (idx / N) * (H - viewH), behavior: 'smooth' });
-    };
+    window.addEventListener('resize', applyMode, { passive: true });
+    MQ_STG.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    applyMode();
   })();
 
   function submitReportForm(e) {
