@@ -2560,11 +2560,12 @@
 
   // ── REPORT FORMS (modal + CTA section) ──
   (function () {
-    /* Google Apps Script web app. It MUST be deployed with
-       "Who has access: Anyone" — a domain-restricted deployment answers
-       anonymous POSTs with 401 and sends no CORS headers, so nothing is
-       recorded and the browser cannot read the reply. */
-    const REPORT_ENDPOINT = 'https://script.google.com/a/macros/electrogenos.com/s/AKfycbxnOp9MXm21UC59qSXjVWa7rKq_O2cpXC-TYcolKnWPLr7AvqmjCEEIugGa3Ddi0Pf-oA/exec';
+    /* Google Apps Script web app, deployed with "Who has access: Anyone".
+       doPost must finish cleanly and return ContentService output: if it
+       throws, Apps Script serves an HTML error page from script.google.com
+       with no Access-Control-Allow-Origin, and the browser cannot read the
+       reply even though the request arrived. */
+    const REPORT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzyLF__H-QfKO69vrUsvC0J5e5VxO-bqRYxnUlgi6tQF_a9Wm4ek7bOO8BTNnZn51e4hA/exec';
 
     const ERR_GENERIC = 'Something went wrong. Please try again or email info@electrogenos.com.';
     const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
