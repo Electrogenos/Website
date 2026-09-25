@@ -700,6 +700,115 @@
     /* ── TEAM ─────────────────────────────────────────────────────────── */
     /* Phones get a link through to the dedicated team page instead of a
        hover-only carousel, which has no touch equivalent. */
+    /* ── RECOGNITION ───────────────────────────────────────────────────
+       Cards render from the RECOGNITION array in the page script, which is
+       also the marquee's source, so the two can never disagree. */
+    #recognition { scroll-margin-top: var(--nav-h); }
+    .recognition { padding-block: clamp(3.5rem, 8vw, 6rem); background: var(--light); }
+    .rec-head { margin-bottom: 2.5rem; }
+
+    .rec-group { margin-bottom: 40px; }
+    .rec-group:last-child { margin-bottom: 0; }
+    .rec-group-title {
+      font-size: 13px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: #64748B; margin: 0 0 12px;
+    }
+    .rec-grid {
+      display: grid; gap: 16px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    @media (min-width: 48rem) { .rec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (min-width: 64rem) { .rec-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
+    @media (min-width: 75rem) { .rec-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+
+    .rec-card {
+      position: relative; min-height: 150px; padding: 20px 16px;
+      background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
+      display: flex; flex-direction: column; align-items: center;
+      text-decoration: none; color: inherit;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+    .rec-label {
+      font-size: 13px; line-height: 1.4; color: #475569; text-align: center;
+      /* Two-line floor keeps every logo on a row at the same height. */
+      min-height: 2.8em;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      line-clamp: 2; overflow: hidden;
+    }
+    .rec-logo {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: 0; margin-top: 8px;
+    }
+    .rec-logo img {
+      max-height: 44px; max-width: 75%; width: auto; height: auto;
+      object-fit: contain;
+      filter: grayscale(1); opacity: .75;
+      transition: filter .2s ease, opacity .2s ease;
+    }
+    /* Fallback when the logo file is not in the repo yet. */
+    .rec-wordmark {
+      font-size: 16px; font-weight: 600; color: #334155;
+      text-align: center; line-height: 1.3;
+    }
+    .rec-card:hover, .rec-card:focus-visible { border-color: var(--blue); }
+    .rec-card:hover .rec-logo img, .rec-card:focus-visible .rec-logo img { filter: none; opacity: 1; }
+    a.rec-card:hover, a.rec-card:focus-visible { transform: translateY(-2px); }
+    .rec-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+    .rec-ext { position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; color: #94A3B8; }
+
+    /* Programmes: collapsed until the button is pressed. */
+    .rec-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .45s ease, opacity .45s ease; }
+    .rec-collapse > div { overflow: hidden; min-height: 0; }
+    .rec-collapse.is-open { grid-template-rows: 1fr; opacity: 1; }
+    .rec-more-wrap { display: flex; justify-content: center; margin-top: 24px; }
+    .rec-more {
+      display: inline-flex; align-items: center; gap: .5rem;
+      min-height: var(--tap); padding: .625rem 1.25rem;
+      font: inherit; font-size: .9375rem; font-weight: 600; color: var(--navy);
+      background: #fff; border: 1px solid #CBD5E1; border-radius: 999px; cursor: pointer;
+      transition: border-color .2s ease, color .2s ease;
+    }
+    .rec-more:hover { border-color: var(--blue); color: var(--blue); }
+    .rec-more:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .rec-more svg { width: 14px; height: 14px; transition: transform .3s ease; }
+    .rec-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+    /* ── Press strip ── */
+    .rec-press { margin-top: 40px; border-top: 1px solid #E2E8F0; padding-top: 32px; text-align: center; }
+    .rec-press-label { font-size: 13px; color: #64748B; margin: 0 0 16px; }
+    .rec-press-links {
+      display: flex; flex-wrap: wrap; justify-content: center;
+      gap: 12px 36px;
+    }
+    .rec-press-links a {
+      font-size: 17px; font-weight: 600; color: #94A3B8;
+      text-decoration: none; transition: color .2s ease;
+      /* Vertical padding only: lifts the tap target to 44px while leaving
+         the 36px column gap exactly as specified. */
+      padding-block: .5625rem;
+    }
+    .rec-press-links a:hover, .rec-press-links a:focus-visible { color: #0F172A; }
+
+    /* ── Marquee label under the hero ── */
+    .trust-label {
+      display: block; width: fit-content; margin: 0 auto;
+      padding: .75rem 1rem;                 /* 44px tap target */
+      font-size: 13px; color: #64748B; letter-spacing: .04em;
+      text-align: center; text-decoration: none;
+    }
+    .trust-label:hover, .trust-label:focus-visible { color: var(--navy); }
+    .marquee-track:hover, .marquee-track:focus-within { animation-play-state: paused; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rec-card, .rec-logo img, .rec-collapse, .rec-more svg { transition: none; }
+      a.rec-card:hover, a.rec-card:focus-visible { transform: none; }
+      /* Static wrapping row instead of a moving strip. */
+      .marquee-outer { overflow: visible; }
+      .marquee-track { animation: none; width: 100%; flex-wrap: wrap; justify-content: center; }
+      .marquee-track .marquee-set[aria-hidden="true"] { display: none; }
+      .marquee-set { grid-auto-flow: row dense; grid-template-columns: repeat(auto-fit, minmax(5rem, 6.875rem)); justify-content: center; }
+    }
+
     /* ── THE TEAM ─────────────────────────────────────────────────────
        Header + scroll-snap carousel, sized to fit one screen on desktop.
        --card-w drives everything: card width, the track width (exactly one
@@ -1365,58 +1474,12 @@
 
   <!-- ── TRUST BAR ── -->
   <div class="trust-bar" id="trustBar">
+    <a class="trust-label" href="#recognition">Recognised and supported by</a>
     <div class="marquee-outer">
       <div class="marquee-track">
-        <div class="marquee-set">
-          <img src="company_logos/1.png"  alt="Partner">
-          <img src="company_logos/2.png"  alt="Partner">
-          <img src="company_logos/3.png"  alt="Partner">
-          <img src="company_logos/4.png"  alt="Partner">
-          <img src="company_logos/5.png"  alt="Partner">
-          <img src="company_logos/6.png"  alt="Partner">
-          <img src="company_logos/7.png"  alt="Partner">
-          <img src="company_logos/8.png"  alt="Partner">
-          <img src="company_logos/9.png"  alt="Partner">
-          <img src="company_logos/10.png" alt="Partner">
-          <img src="company_logos/13.png" alt="Partner">
-          <img src="company_logos/14.png" alt="Partner">
-          <img src="company_logos/15.png" alt="Partner">
-          <img src="company_logos/16.png" alt="Partner">
-          <img src="company_logos/17.png" alt="Partner">
-          <img src="company_logos/18.png" alt="Partner">
-          <img src="company_logos/19.png" alt="Partner">
-          <img src="company_logos/20.png" alt="Partner">
-          <img src="company_logos/21.png" alt="Partner">
-          <img src="company_logos/22.png" alt="Partner">
-          <img src="company_logos/23.png" alt="Partner">
-          <img src="company_logos/24.png" alt="Partner">
-          <img src="company_logos/25.png" alt="Partner">
-        </div>
-        <div class="marquee-set" aria-hidden="true">
-          <img src="company_logos/1.png"  alt="">
-          <img src="company_logos/2.png"  alt="">
-          <img src="company_logos/3.png"  alt="">
-          <img src="company_logos/4.png"  alt="">
-          <img src="company_logos/5.png"  alt="">
-          <img src="company_logos/6.png"  alt="">
-          <img src="company_logos/7.png"  alt="">
-          <img src="company_logos/8.png"  alt="">
-          <img src="company_logos/9.png"  alt="">
-          <img src="company_logos/10.png" alt="">
-          <img src="company_logos/13.png" alt="">
-          <img src="company_logos/14.png" alt="">
-          <img src="company_logos/15.png" alt="">
-          <img src="company_logos/16.png" alt="">
-          <img src="company_logos/17.png" alt="">
-          <img src="company_logos/18.png" alt="">
-          <img src="company_logos/19.png" alt="">
-          <img src="company_logos/20.png" alt="">
-          <img src="company_logos/21.png" alt="">
-          <img src="company_logos/22.png" alt="">
-          <img src="company_logos/23.png" alt="">
-          <img src="company_logos/24.png" alt="">
-          <img src="company_logos/25.png" alt="">
-        </div>
+        <!-- Both sets render from the RECOGNITION array. -->
+        <div class="marquee-set" id="marqueeSetA"></div>
+        <div class="marquee-set" id="marqueeSetB" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -1621,6 +1684,38 @@
 
 
 <!-- ══ TEAM ══ -->
+<!-- ══ RECOGNITION ══ -->
+<section class="recognition" id="recognition">
+  <div class="container">
+    <div class="rec-head reveal">
+      <p class="t-eyebrow word-reveal">Recognition</p>
+      <h2 class="t-h2 word-reveal">Awarded and <strong class="t-accent">backed</strong> by leaders in energy</h2>
+      <span class="sec-rule" aria-hidden="true"></span>
+    </div>
+
+    <!-- Cards render from the RECOGNITION array in the page script. -->
+    <div id="recogGroups"></div>
+
+    <div class="rec-collapse" id="recogCollapse"><div></div></div>
+
+    <div class="rec-more-wrap" id="recogMoreWrap" hidden>
+      <button type="button" class="rec-more" id="recogMore"
+              aria-expanded="false" aria-controls="recogCollapse">
+        <span class="rec-more-text">See all programmes</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+
+    <div class="rec-press">
+      <p class="rec-press-label">As featured in</p>
+      <div class="rec-press-links" id="recogPress"></div>
+    </div>
+  </div>
+</section>
+
 <section class="team on-dark" id="team">
   <div class="container">
     <div class="tm-head reveal">
@@ -2276,6 +2371,161 @@
       }
     }, { threshold: 0.3 });
     obs.observe(chart);
+  })();
+
+  // ── RECOGNITION (cards + hero marquee, one source) ──
+  (function () {
+    /* Single source of truth. published:false items are skipped entirely —
+       they are never written to the DOM in any form. Publishing is a manual
+       flag change, never automatic. */
+    const RECOGNITION = [
+      { group: 'Awards', label: 'Winner, Startup Pitch Competition 2026', name: 'Make it in the Emirates',
+        logo: 'recognition/make-it-in-the-emirates.png',
+        url: 'https://mena.entrepreneur.com/business-news/startup-pitch-competition-names-winners-at-make-it-in-the-emirates-2026', published: true },
+      { group: 'Awards', label: 'Winner, Sustainable Solutions 2025', name: 'Eureka! GCC',
+        logo: 'recognition/eureka-gcc.png',
+        url: 'https://www.khaleejtimes.com/kt-network/nahyan-bin-mubarak-crowns-timble-ai-as-grand-winner-of-4th-eureka-gcc-in-dubai-2', published: true },
+      { group: 'Awards', label: 'Winner, Eco Innovator 2024', name: 'SeedLegals Startup Awards',
+        logo: 'recognition/seedlegals.png',
+        url: 'https://seedlegals.com/resources/startup-awards-winners-2024/', published: true },
+      { group: 'Awards', label: 'Winner, South Central 2023', name: 'KPMG UK Tech Innovator',
+        logo: 'company_logos/20.png',
+        url: 'https://thebusinessmagazine.co.uk/corporate-finance/abingdon-tech-and-manufacturing-start-up-electrogenos-crowned-tech-innovator/', published: true },
+
+      { group: 'Funded by', label: 'Transformative Technologies 2023', name: 'Innovate UK',
+        logo: 'company_logos/17.png', url: '', published: true },
+      { group: 'Funded by', label: 'Energy Catalyst Round 11, 2026', name: 'Energy Catalyst',
+        logo: 'recognition/energy-catalyst.png',
+        url: 'https://energycatalyst.ukri.org/news/energy-catalyst-round-11-awards-funding-to-high-impact-clean-energy-innovations/', published: true },
+      { group: 'Funded by', label: 'Industrial Collaboration Programme', name: 'Henry Royce Institute',
+        logo: 'company_logos/7.png', url: '', published: true },
+
+      { group: 'Programmes', label: 'Accelerated by, ClimateTech Cohort 15', name: 'Hub71',
+        logo: 'company_logos/6.png',
+        url: 'https://www.hub71.com/latest-news/press-release/hub71-welcomes-21-startups-in-15th-cohort-to-abu-dhabi-that-have-raised-over-usd-130-million-in-funding', published: true },
+      { group: 'Programmes', label: 'Accelerated by, Entrepreneurs Fund 2024', name: 'Repsol Foundation',
+        logo: 'company_logos/2.png',
+        url: 'https://www.fundacionrepsol.com/en/noticias/fundacion-repsol-incorpora-7-nuevas-startups-fondo-de-emprendedores/', published: true },
+      { group: 'Programmes', label: 'Selected, Hydrogen Challenge 2024', name: 'All4Zero',
+        logo: 'recognition/all4zero.png',
+        url: 'https://all4zero-hub.com/wp-content/uploads/2024/06/20062024_NdP_All4Zero-All4Zero-presents-12-technological-solutions.pdf', published: true },
+      { group: 'Programmes', label: 'Finalist, Ramp-Up Season 4', name: 'EGA',
+        logo: 'company_logos/10.png', url: '', published: true },
+      { group: 'Programmes', label: 'Accelerated by, 2023', name: 'H2UB',
+        logo: 'company_logos/13.png', url: '', published: true },
+      { group: 'Programmes', label: 'Accelerated by, ScaleForClimate 2025', name: 'NYSERDA',
+        logo: 'company_logos/16.png', url: '', published: true },
+      { group: 'Programmes', label: 'Accelerated by, TechX 2023', name: 'Net Zero Technology Centre',
+        logo: 'recognition/nztc.png', url: '', published: true },
+      { group: 'Programmes', label: 'Commercialisation Bootcamp 2026', name: 'Founders Factory',
+        logo: 'recognition/founders-factory.png', url: '', published: true },
+    ];
+
+    const PRESS = [
+      { name: 'Energy Voice', url: 'https://www.energyvoice.com/renewables-energy-transition/hydrogen/uk-hydrogen/540500/green-hydrogen-start-up-electrogenos-announces-cost-reduction-breakthrough/' },
+      { name: 'H2 View', url: 'https://h2-view.com/story/uk-green-hydrogen-start-up-reveals-alkaline-electrolyser-tech/2101567.article/' },
+      { name: 'R&D Today', url: 'https://www.rndtoday.co.uk/sustainability/green-hydrogen-electrogenos-reducing-the-cost-of-production/' },
+      { name: 'Entrepreneur Middle East', url: 'https://mena.entrepreneur.com/business-news/startup-pitch-competition-names-winners-at-make-it-in-the-emirates-2026' },
+      { name: 'Milton Park', url: 'https://www.miltonpark.co.uk/business/company-spotlight-electrogenos/' },
+    ];
+
+    const GROUP_ORDER = ['Awards', 'Pilot partners', 'Funded by', 'Backed by', 'Programmes'];
+    const COLLAPSED = 'Programmes';
+
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const EXT_ICON = '<svg class="rec-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+      '<path d="M7 17 17 7M9 7h8v8"/></svg>';
+
+    const live = RECOGNITION.filter(r => r.published === true);
+
+    /* A logo that 404s swaps itself for a wordmark, so a card never shows a
+       broken image and new files need no code change. */
+    function logoHtml(r) {
+      return '<span class="rec-logo"><img src="' + esc(r.logo) + '" alt="' + esc(r.name) + '"' +
+             ' width="160" height="44" loading="lazy"' +
+             ' onerror="this.parentNode.innerHTML=\'<span class=&quot;rec-wordmark&quot;>' +
+             esc(r.name).replace(/'/g, '&#39;') + '</span>\'"></span>';
+    }
+
+    function cardHtml(r) {
+      const inner = '<span class="rec-label">' + esc(r.label) + '</span>' + logoHtml(r);
+      if (r.url) {
+        return '<a class="rec-card" href="' + esc(r.url) + '" target="_blank" rel="noopener"' +
+               ' aria-label="' + esc(r.label + ', ' + r.name) + ' (opens in a new tab)">' +
+               EXT_ICON + inner + '</a>';
+      }
+      return '<div class="rec-card">' + inner + '</div>';
+    }
+
+    function gridHtml(items) {
+      return '<div class="rec-grid">' + items.map(cardHtml).join('') + '</div>';
+    }
+
+    const host = document.getElementById('recogGroups');
+    const more = document.getElementById('recogMore');
+    const wrap = document.getElementById('recogMoreWrap');
+    if (!host) return;
+
+    let html = '', collapsedHtml = '';
+    GROUP_ORDER.forEach(g => {
+      const items = live.filter(r => r.group === g);
+      if (!items.length) return;                       // no empty headings
+      const block = '<h3 class="rec-group-title">' + esc(g) + '</h3>' + gridHtml(items);
+      if (g === COLLAPSED) collapsedHtml = '<div class="rec-group">' + block + '</div>';
+      else html += '<div class="rec-group">' + block + '</div>';
+    });
+    host.innerHTML = html;
+
+    const panel = document.getElementById('recogCollapse');
+    if (collapsedHtml && panel) {
+      panel.querySelector('div').innerHTML = collapsedHtml;
+      if (wrap) wrap.hidden = false;
+      if (more) {
+        more.addEventListener('click', () => {
+          const open = panel.classList.toggle('is-open');
+          more.setAttribute('aria-expanded', String(open));
+          more.querySelector('.rec-more-text').textContent = open ? 'Show less' : 'See all programmes';
+        });
+      }
+    }
+
+    const press = document.getElementById('recogPress');
+    if (press) {
+      press.innerHTML = PRESS.map(p =>
+        '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.name) + '</a>').join('');
+    }
+
+    /* ── Hero marquee, from the same list ──
+       Logos that are not in the repo yet are skipped rather than shown as a
+       wordmark, so the strip stays purely visual. */
+    const MARQUEE_ORDER = ['Make it in the Emirates', 'Eureka! GCC', 'SeedLegals Startup Awards',
+      'KPMG UK Tech Innovator', 'Innovate UK', 'Energy Catalyst', 'Henry Royce Institute', 'Hub71',
+      'Repsol Foundation', 'All4Zero', 'EGA', 'H2UB', 'NYSERDA', 'Net Zero Technology Centre',
+      'Founders Factory'];
+
+    const setA = document.getElementById('marqueeSetA');
+    const setB = document.getElementById('marqueeSetB');
+    if (setA && setB) {
+      const ordered = MARQUEE_ORDER
+        .map(n => live.find(r => r.name === n))
+        .filter(Boolean);
+      Promise.all(ordered.map(r => new Promise(res => {
+        const img = new Image();
+        img.onload = () => res(r);
+        img.onerror = () => res(null);
+        img.src = r.logo;
+      }))).then(found => {
+        const ok = found.filter(Boolean);
+        if (!ok.length) return;
+        setA.innerHTML = ok.map(r =>
+          '<img src="' + esc(r.logo) + '" alt="' + esc(r.name) + '" loading="lazy">').join('');
+        setB.innerHTML = ok.map(r =>
+          '<img src="' + esc(r.logo) + '" alt="" loading="lazy">').join('');
+      });
+    }
   })();
 
   // ── THE TEAM (scroll-snap carousel) ──
