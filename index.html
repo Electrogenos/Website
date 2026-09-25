@@ -261,6 +261,16 @@
     .hero-left { width: 100%; max-width: 47.5rem; }
     /* Reveal animation only — all type comes from .t-h1 / .t-accent / .t-deck */
     .ht1, .ht2 { display: block; opacity: 0; transform: translateY(24px); }
+    /* Turquoise rule under "green" only. All lengths are in em so the
+       underline scales with the heading at every breakpoint; skip-ink lets
+       it break cleanly around the descender of the "g". */
+    .hl-green {
+      text-decoration-line: underline;
+      text-decoration-color: var(--turquoise);
+      text-decoration-thickness: .09em;
+      text-underline-offset: .1em;
+      text-decoration-skip-ink: auto;
+    }
     .ht1 { animation: fadeUp .65s .1s  cubic-bezier(.22,1,.36,1) forwards; }
     .ht2 { animation: fadeUp .65s .28s cubic-bezier(.22,1,.36,1) forwards; }
     .hero-sub {
@@ -284,16 +294,21 @@
        Positions are computed from each centre and radius, and the wrapper
        reserves the drift distance on every side so the layout never shifts. */
     .hero-visual {
-      --h2: 180px;
-      --stat: 110px;
-      --mv-h2: 9px;                  /* H2 max distance from rest   */
-      --mv-st: 12px;                 /* stat max distance from rest */
+      --h2: clamp(140px, 42vw, 180px);
+      --stat: clamp(110px, 32vw, 130px);
+      --mv-h2: 6px;                  /* H2 max distance from rest   */
+      --mv-st: 10px;                 /* stat max distance from rest */
+      /* Minimum legible type inside a stat bubble. Restored to the original
+         values at 1024px so the desktop cluster is untouched. */
+      --num-min: 1.5rem;
+      --lbl-min: 11px;
       --gap-hs: calc(var(--mv-h2) + var(--mv-st));
       --gap-ss: calc(var(--mv-st) * 2);
       position: relative;            /* bubbles anchor here, not the viewport */
       display: flex; align-items: center; justify-content: center;
       flex: 0 0 auto;
-      width: calc(var(--h2) + var(--mv-h2) * 2);
+      width: calc(var(--mv-h2) + var(--h2) + var(--gap-hs) + var(--stat) + var(--mv-st));
+      max-width: 100%;
       margin-inline: auto;           /* centred under the buttons on small screens */
       opacity: 0; transform: translateX(32px);
       animation: fadeRight .9s .3s cubic-bezier(.22,1,.36,1) forwards;
@@ -301,7 +316,7 @@
     .hero-bubble-wrap {
       position: relative;
       width: 100%;
-      height: calc(var(--h2) + var(--mv-h2) * 2);
+      height: calc(var(--stat) * 2 + var(--gap-ss) + var(--mv-st) * 2);
     }
 
     /* Drift paths — each traces a shallow arc in x and y. Every keyframe sits
@@ -323,9 +338,8 @@
     }
 
     .stat-bubble {
-      /* Hidden below 768px: at ~110px the "cost decrease vs. conventional
-         systems" label is not legible. The H2 bubble shows on its own. */
-      display: none;
+      /* Visible at every width. */
+      display: flex;
       position: absolute; border-radius: 50%;
       width: var(--stat); height: var(--stat); aspect-ratio: 1;
       left: calc(var(--mv-h2) + var(--h2) + var(--gap-hs));
@@ -339,13 +353,13 @@
     }
     /* Type is a fixed share of the bubble diameter (17.8% / 6.9% — the same
        ratios the old design used), with a floor so it stays legible. */
-    .stat-bubble-num { font-size: max(15px, calc(var(--stat) * .178)); font-weight: 700; color: var(--blue); }
-    .stat-bubble-lbl { font-size: max(10px, calc(var(--stat) * .069)); color: var(--muted); margin-top: .3em; }
+    .stat-bubble-num { font-size: max(var(--num-min), calc(var(--stat) * .178)); font-weight: 700; color: var(--blue); line-height: 1.1; }
+    .stat-bubble-lbl { font-size: max(var(--lbl-min), calc(var(--stat) * .069)); line-height: 1.25; color: var(--muted); margin-top: .3em; }
     .stat-b2 { top: var(--mv-st);                        animation: bubbleDriftB 7s ease-in-out -2s infinite alternate; }
     .stat-b3 { top: calc(50% + var(--gap-ss) / 2);       animation: bubbleDriftC 8s ease-in-out -4s infinite alternate; }
 
     .h2-main-bubble {
-      position: absolute; left: var(--mv-h2); top: var(--mv-h2);
+      position: absolute; left: var(--mv-h2); top: calc(50% - var(--h2) / 2);
       width: var(--h2); height: var(--h2); aspect-ratio: 1;
       border-radius: 50%;
       background: radial-gradient(circle at 38% 35%, #eaf4fd 0%, #cce4f5 60%, #b8d9f0 100%);
@@ -357,6 +371,21 @@
     }
     .h2-letter { font-size: calc(var(--h2) * .35); font-weight: 700; color: var(--blue); letter-spacing: -2px; }
     .h2-sub    { font-size: calc(var(--h2) * .153); font-weight: 600; color: var(--blue); align-self: flex-end; margin-bottom: calc(var(--h2) * .06); }
+
+    /* Below 360px the side-by-side triangle would need 282px of the 280px
+       free at 320px, so the cluster stacks: H2 on top, the two stats in a
+       row beneath. Gaps are still derived from the drift distances, so the
+       no-overlap guarantee holds. */
+    @media (max-width: 22.4375rem) {
+      .hero-visual { width: calc(var(--stat) * 2 + var(--gap-ss) + var(--mv-st) * 2); }
+      .hero-bubble-wrap {
+        height: calc(var(--mv-h2) + var(--h2) + var(--gap-hs) + var(--stat) + var(--mv-st));
+      }
+      .h2-main-bubble { top: var(--mv-h2); left: calc(50% - var(--h2) / 2); }
+      .stat-bubble { top: calc(var(--mv-h2) + var(--h2) + var(--gap-hs)); }
+      .stat-b2 { left: var(--mv-st); right: auto; }
+      .stat-b3 { left: auto; right: var(--mv-st); }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       .h2-main-bubble, .stat-bubble { animation: none; }
@@ -842,13 +871,7 @@
     @media (min-width: 48rem) {
       :root { --pad-x: 2rem; }
 
-      .hero-visual {
-        --h2: 200px; --stat: 120px; --mv-h2: 10px; --mv-st: 14px;
-        width: calc(var(--mv-h2) + var(--h2) + var(--gap-hs) + var(--stat) + var(--mv-st));
-      }
-      .hero-bubble-wrap { height: calc(var(--stat) * 2 + var(--gap-ss) + var(--mv-st) * 2); }
-      .h2-main-bubble { top: calc(50% - var(--h2) / 2); }
-      .stat-bubble { display: flex; }
+      .hero-visual { --h2: 220px; --stat: 140px; --mv-h2: 10px; --mv-st: 14px; }
 
       /* ── HERO ── */
       .hero { padding-top: calc(var(--nav-h) + 2.5rem); }
@@ -989,6 +1012,7 @@
         --h2:   clamp(240px, 22vw, 320px);
         --stat: clamp(140px, 12vw, 180px);
         --mv-h2: 12px; --mv-st: 20px;
+        --num-min: 15px; --lbl-min: 10px;   /* desktop type unchanged */
         margin-inline: 0;              /* flush to the container's right edge */
       }
 
@@ -1186,7 +1210,7 @@
     <div class="hero-left">
       <h1 class="t-h1">
         <span class="ht1">The future of</span>
-        <span class="ht2 t-accent">green hydrogen</span>
+        <span class="ht2 t-accent"><span class="hl-green">green</span> hydrogen</span>
       </h1>
       <p class="hero-sub t-deck">Developing advanced materials and electrochemistry technology for ultra-efficient electrolysis</p>
       <div class="hero-btn-wrap">
