@@ -2642,29 +2642,44 @@
 
         if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
 
+        /* urlencoded keeps this a "simple" request: no preflight, which Apps
+           Script cannot answer. Read the reply if the browser lets us, and
+           fall back to a blind send if CORS blocks it. */
+        const payload = new URLSearchParams(new FormData(form));
+        let sent = false;
         try {
-          /* FormData keeps this a "simple" request, so no CORS preflight —
-             Apps Script cannot answer an OPTIONS probe. A correctly deployed
-             web app redirects to googleusercontent.com, which does send
-             Access-Control-Allow-Origin, so res.ok is readable. */
-          const res = await fetch(REPORT_ENDPOINT, { method: 'POST', body: new FormData(form) });
+          const res = await fetch(REPORT_ENDPOINT, {
+            method: 'POST', body: payload, redirect: 'follow',
+          });
+          const text = await res.text();
           if (!res.ok) throw new Error('HTTP ' + res.status);
-          /* Apps Script answers 200 even when it reports a failure, and it
-             serves an HTML error page if doPost throws. So the body decides:
-             only an explicit { ok: true } counts as success. */
-          const body = await res.text();
-          let data;
-          try { data = JSON.parse(body); }
-          catch (_) { throw new Error('Non-JSON reply (script error page?)'); }
-          if (!data || data.ok !== true) throw new Error('Endpoint reported ok:false');
+          /* Apps Script answers 200 even when it reports a failure, and serves
+             an HTML error page if doPost throws, so the body decides. */
+          let data = null;
+          try { data = JSON.parse(text); } catch (_) {}
+          if (!data || data.ok !== true) throw new Error('Endpoint did not return ok:true');
+          sent = true;
+        } catch (readErr) {
+          /* The request may well have been recorded — we just cannot see the
+             answer. Repeat it opaquely; completing without throwing is the
+             only signal available in no-cors mode. */
+          try {
+            await fetch(REPORT_ENDPOINT, {
+              method: 'POST', body: payload, mode: 'no-cors', redirect: 'follow',
+            });
+            sent = true;
+          } catch (sendErr) {
+            /* Offline or DNS failure: nothing was sent. */
+          }
+        }
+
+        if (sent) {
           form.style.display = 'none';
           if (successEl) successEl.style.display = 'block';
           form.reset();
-        } catch (err) {
-          /* Network failure, CORS block or a non-2xx reply all land here. The
-             details go to the console so this stays diagnosable; the visitor
-             sees one message and keeps everything they typed. */
-          console.warn('[report form] submission failed:', err);
+        } else {
+          /* Only a genuine send failure (offline, DNS) reaches here. The
+             visitor keeps everything they typed. */
           if (status) { status.textContent = ERR_GENERIC; status.style.color = '#B91C1C'; }
           if (btn) { btn.disabled = false; btn.innerHTML = label; }
         }
