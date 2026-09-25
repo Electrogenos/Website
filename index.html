@@ -410,8 +410,11 @@
     }
     .marquee-set img {
       width: 100%; height: 2.25rem; object-fit: contain; object-position: center;
+      /* Grey in the strip; full colour belongs to the Recognition cards only. */
+      filter: grayscale(1); opacity: .5;
       transition: opacity .2s;
     }
+    .marquee-set img:hover { opacity: .85; }
 
     /* ── REVEAL UTILITIES ─────────────────────────────────────────────── */
     .word-reveal .word {
@@ -773,30 +776,7 @@
     .rec-more svg { width: 14px; height: 14px; transition: transform .3s ease; }
     .rec-more[aria-expanded="true"] svg { transform: rotate(180deg); }
 
-    /* ── Press strip ── */
-    .rec-press { margin-top: 40px; border-top: 1px solid #E2E8F0; padding-top: 32px; text-align: center; }
-    .rec-press-label { font-size: 13px; color: #64748B; margin: 0 0 16px; }
-    .rec-press-links {
-      display: flex; flex-wrap: wrap; justify-content: center;
-      gap: 12px 36px;
-    }
-    .rec-press-links a {
-      font-size: 17px; font-weight: 600; color: #94A3B8;
-      text-decoration: none; transition: color .2s ease;
-      /* Vertical padding only: lifts the tap target to 44px while leaving
-         the 36px column gap exactly as specified. */
-      padding-block: .5625rem;
-    }
-    .rec-press-links a:hover, .rec-press-links a:focus-visible { color: #0F172A; }
-
-    /* ── Marquee label under the hero ── */
-    .trust-label {
-      display: block; width: fit-content; margin: 0 auto;
-      padding: .75rem 1rem;                 /* 44px tap target */
-      font-size: 13px; color: #64748B; letter-spacing: .04em;
-      text-align: center; text-decoration: none;
-    }
-    .trust-label:hover, .trust-label:focus-visible { color: var(--navy); }
+    /* Marquee pauses on hover and on keyboard focus. */
     .marquee-track:hover, .marquee-track:focus-within { animation-play-state: paused; }
 
     @media (prefers-reduced-motion: reduce) {
@@ -1474,7 +1454,6 @@
 
   <!-- ── TRUST BAR ── -->
   <div class="trust-bar" id="trustBar">
-    <a class="trust-label" href="#recognition">Recognised and supported by</a>
     <div class="marquee-outer">
       <div class="marquee-track">
         <!-- Both sets render from the RECOGNITION array. -->
@@ -1684,6 +1663,30 @@
 
 
 <!-- ══ TEAM ══ -->
+<section class="team on-dark" id="team">
+  <div class="container">
+    <div class="tm-head reveal">
+      <p class="t-eyebrow word-reveal">The team</p>
+      <h2 class="t-h2 word-reveal">Meet the minds behind Electrogenos</h2>
+      <span class="sec-rule" aria-hidden="true"></span>
+      <p class="sec-sub">Combining advanced research with industrial scale-up experience</p>
+    </div>
+
+    <div class="tm-row">
+      <button type="button" class="tm-arrow" id="teamPrev" aria-label="Previous team members">
+        <svg viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false"><polyline points="11,3 5,9 11,15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <!-- Cards rendered from the TEAM array in the page script. -->
+      <div class="tm-track" id="teamTrack" tabindex="0" role="region" aria-label="Team members"></div>
+      <button type="button" class="tm-arrow" id="teamNext" aria-label="Next team members">
+        <svg viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false"><polyline points="7,3 13,9 7,15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+
+    <div class="tm-dots" id="teamDots"></div>
+  </div>
+</section>
+
 <!-- ══ RECOGNITION ══ -->
 <section class="recognition" id="recognition">
   <div class="container">
@@ -1708,35 +1711,6 @@
         </svg>
       </button>
     </div>
-
-    <div class="rec-press">
-      <p class="rec-press-label">As featured in</p>
-      <div class="rec-press-links" id="recogPress"></div>
-    </div>
-  </div>
-</section>
-
-<section class="team on-dark" id="team">
-  <div class="container">
-    <div class="tm-head reveal">
-      <p class="t-eyebrow word-reveal">The team</p>
-      <h2 class="t-h2 word-reveal">Meet the minds behind Electrogenos</h2>
-      <span class="sec-rule" aria-hidden="true"></span>
-      <p class="sec-sub">Combining advanced research with industrial scale-up experience</p>
-    </div>
-
-    <div class="tm-row">
-      <button type="button" class="tm-arrow" id="teamPrev" aria-label="Previous team members">
-        <svg viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false"><polyline points="11,3 5,9 11,15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-      <!-- Cards rendered from the TEAM array in the page script. -->
-      <div class="tm-track" id="teamTrack" tabindex="0" role="region" aria-label="Team members"></div>
-      <button type="button" class="tm-arrow" id="teamNext" aria-label="Next team members">
-        <svg viewBox="0 0 18 18" fill="none" aria-hidden="true" focusable="false"><polyline points="7,3 13,9 7,15" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
-      </button>
-    </div>
-
-    <div class="tm-dots" id="teamDots"></div>
   </div>
 </section>
 
@@ -2383,48 +2357,40 @@
         logo: 'recognition/make-it-in-the-emirates.png',
         url: 'https://mena.entrepreneur.com/business-news/startup-pitch-competition-names-winners-at-make-it-in-the-emirates-2026', published: true },
       { group: 'Awards', label: 'Winner, Sustainable Solutions 2025', name: 'Eureka! GCC',
-        logo: 'recognition/eureka-gcc.png',
+        logo: 'recognition/eureka.png',
         url: 'https://www.khaleejtimes.com/kt-network/nahyan-bin-mubarak-crowns-timble-ai-as-grand-winner-of-4th-eureka-gcc-in-dubai-2', published: true },
       { group: 'Awards', label: 'Winner, Eco Innovator 2024', name: 'SeedLegals Startup Awards',
         logo: 'recognition/seedlegals.svg',
         url: 'https://seedlegals.com/resources/startup-awards-winners-2024/', published: true },
       { group: 'Awards', label: 'Winner, South Central 2023', name: 'KPMG UK Tech Innovator',
-        logo: 'company_logos/20.png',
+        logo: 'recognition/kpmg.png', grey: 'company_logos/20.png',
         url: 'https://thebusinessmagazine.co.uk/corporate-finance/abingdon-tech-and-manufacturing-start-up-electrogenos-crowned-tech-innovator/', published: true },
 
       { group: 'Funded by', label: 'Transformative Technologies 2023', name: 'Innovate UK',
-        logo: 'company_logos/17.png', url: '', published: true },
+        logo: 'recognition/innovateuk.png', grey: 'company_logos/17.png', url: '', published: true },
       { group: 'Funded by', label: 'Energy Catalyst Round 11, 2026', name: 'Energy Catalyst',
-        logo: 'recognition/energy-catalyst.png',
+        logo: 'recognition/energycatalyst.png',
         url: 'https://energycatalyst.ukri.org/news/energy-catalyst-round-11-awards-funding-to-high-impact-clean-energy-innovations/', published: true },
       { group: 'Funded by', label: 'Industrial Collaboration Programme', name: 'Henry Royce Institute',
-        logo: 'company_logos/7.png', url: '', published: true },
+        logo: 'recognition/henryroyce.png', grey: 'company_logos/7.png', url: '', published: true },
 
       { group: 'Programmes', label: 'ClimateTech Cohort 15, 2024', name: 'Hub71',
-        logo: 'recognition/hub71.svg',
+        logo: 'recognition/hub71.svg', grey: 'company_logos/6.png',
         url: 'https://www.hub71.com/latest-news/press-release/hub71-welcomes-21-startups-in-15th-cohort-to-abu-dhabi-that-have-raised-over-usd-130-million-in-funding', published: true },
       { group: 'Programmes', label: 'Entrepreneurs Fund, 2024', name: 'Repsol Foundation',
-        logo: 'recognition/repsol-foundation.png',
+        logo: 'recognition/repsol-foundation.png', grey: 'company_logos/2.png',
         url: 'https://www.fundacionrepsol.com/en/noticias/fundacion-repsol-incorpora-7-nuevas-startups-fondo-de-emprendedores/', published: true },
       { group: 'Programmes', label: 'Hydrogen Challenge, 2024', name: 'All4Zero',
-        logo: 'recognition/all4zero.png',
+        logo: 'recognition/all4zero.jpg',
         url: 'https://all4zero-hub.com/wp-content/uploads/2024/06/20062024_NdP_All4Zero-All4Zero-presents-12-technological-solutions.pdf', published: true },
       { group: 'Programmes', label: 'Ramp-Up Season 4 finalist, 2026', name: 'EGA',
-        logo: 'company_logos/10.png', url: '', published: true },
+        logo: 'company_logos/10.png', grey: 'company_logos/10.png', url: '', published: true },
       { group: 'Programmes', label: 'Accelerator, 2023', name: 'H2UB',
-        logo: 'company_logos/13.png', url: '', published: true },
+        logo: 'recognition/h2ub.jpg', grey: 'company_logos/13.png', url: '', published: true },
       { group: 'Programmes', label: 'ScaleForClimate, 2025', name: 'NYSERDA',
-        logo: 'company_logos/16.png', url: '', published: true },
+        logo: 'recognition/nyserda.png', grey: 'company_logos/16.png', url: '', published: true },
       { group: 'Programmes', label: 'TechX accelerator, 2023', name: 'Net Zero Technology Centre',
         logo: 'recognition/nztc.png', url: '', published: true },
-    ];
-
-    const PRESS = [
-      { name: 'Energy Voice', url: 'https://www.energyvoice.com/renewables-energy-transition/hydrogen/uk-hydrogen/540500/green-hydrogen-start-up-electrogenos-announces-cost-reduction-breakthrough/' },
-      { name: 'H2 View', url: 'https://h2-view.com/story/uk-green-hydrogen-start-up-reveals-alkaline-electrolyser-tech/2101567.article/' },
-      { name: 'R&D Today', url: 'https://www.rndtoday.co.uk/sustainability/green-hydrogen-electrogenos-reducing-the-cost-of-production/' },
-      { name: 'Entrepreneur Middle East', url: 'https://mena.entrepreneur.com/business-news/startup-pitch-competition-names-winners-at-make-it-in-the-emirates-2026' },
-      { name: 'Milton Park', url: 'https://www.miltonpark.co.uk/business/company-spotlight-electrogenos/' },
     ];
 
     const GROUP_ORDER = ['Awards', 'Pilot partners', 'Funded by', 'Backed by', 'Programmes'];
@@ -2490,12 +2456,6 @@
       }
     }
 
-    const press = document.getElementById('recogPress');
-    if (press) {
-      press.innerHTML = PRESS.map(p =>
-        '<a href="' + esc(p.url) + '" target="_blank" rel="noopener">' + esc(p.name) + '</a>').join('');
-    }
-
     /* ── Hero marquee, from the same list ──
        Logos that are not in the repo yet are skipped rather than shown as a
        wordmark, so the strip stays purely visual. */
@@ -2513,14 +2473,14 @@
         const img = new Image();
         img.onload = () => res(r);
         img.onerror = () => res(null);
-        img.src = r.logo;
+        img.src = r.grey || r.logo;
       }))).then(found => {
         const ok = found.filter(Boolean);
         if (!ok.length) return;
         setA.innerHTML = ok.map(r =>
-          '<img src="' + esc(r.logo) + '" alt="' + esc(r.name) + '" loading="lazy">').join('');
+          '<img src="' + esc(r.grey || r.logo) + '" alt="' + esc(r.name) + '" loading="lazy">').join('');
         setB.innerHTML = ok.map(r =>
-          '<img src="' + esc(r.logo) + '" alt="" loading="lazy">').join('');
+          '<img src="' + esc(r.grey || r.logo) + '" alt="" loading="lazy">').join('');
       });
     }
   })();
