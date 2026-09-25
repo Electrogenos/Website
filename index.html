@@ -623,6 +623,41 @@
     .stg-copy ul { list-style: none; max-width: 42.5rem; display: flex; flex-direction: column; gap: .625rem; margin: .625rem 0 1.375rem; }
     .stg-copy ul li { font-size: 1rem; color: var(--muted); }
 
+    /* ── REPORT FORMS ──────────────────────────────────────────────────
+       Shared by the modal and the CTA section. Styling of the existing
+       fields is untouched; this only adds the consent row, inline errors,
+       the status line and the spam trap. */
+    .consent-row {
+      display: flex; align-items: flex-start; gap: .625rem;
+      margin: .25rem 0 .5rem; cursor: pointer;
+      /* The whole row is the hit area, so padding lifts it past 44px even
+         though the box itself is 18px. */
+      padding: .375rem 0;
+      font-size: 1rem; line-height: 1.5;
+    }
+    .consent-row input {
+      flex-shrink: 0; width: 1.125rem; height: 1.125rem;
+      margin: .125rem 0 0; accent-color: var(--blue); cursor: pointer;
+    }
+    .field-err {
+      margin: .25rem 0 0; font-size: .8125rem; line-height: 1.4;
+      color: #B91C1C; min-height: 0;
+    }
+    .cta-form-fields .field-err:empty, .report-box .field-err:empty { display: none; }
+    [aria-invalid="true"] { border-color: #B91C1C !important; }
+    .form-status {
+      margin: .625rem 0 0; font-size: .875rem; line-height: 1.5;
+      color: #B91C1C; font-weight: 500;
+    }
+    .form-status:empty { display: none; }
+    /* Spam trap: moved off-screen rather than display:none, so bots that
+       skip hidden fields still fill it in. */
+    .hp-field {
+      position: absolute !important; left: -9999px; top: auto;
+      width: 1px; height: 1px; overflow: hidden;
+    }
+    button[disabled] { opacity: .65; cursor: progress; }
+
     /* ── OUR ADVANTAGE ────────────────────────────────────────────────── */
     .advantage { position: relative; }
     .advantage-frame {
@@ -1289,7 +1324,7 @@
     <a href="#stgContainer" class="nav-link">Technology</a>
     <a href="#advantage" class="nav-link">Advantage</a>
     <a href="#team" class="nav-link" id="navTeamLink">Team</a>
-    <a href="#" class="btn" style="font-size:16px;" onclick="document.getElementById('reportModal').classList.add('open');return false;">Request a Report</a>
+    <button type="button" class="btn" style="font-size:16px;" data-open-report>Request a Report</button>
   </div>
   </div>
 </nav>
@@ -1304,7 +1339,7 @@
       </h1>
       <p class="hero-sub t-deck">Developing advanced materials and electrochemistry technology for ultra-efficient electrolysis</p>
       <div class="hero-btn-wrap">
-        <a href="#" class="btn" style="font-size:16px;padding:14px 36px;" onclick="document.getElementById('reportModal').classList.add('open');return false;">Request a Report &nbsp;→</a>
+        <button type="button" class="btn" style="font-size:16px;padding:14px 36px;" data-open-report>Request a Report &nbsp;&rarr;</button>
         <a href="#stgContainer" class="btn-outline" style="font-size:16px;padding:14px 36px;">Explore Technology</a>
       </div>
     </div>
@@ -1624,22 +1659,40 @@
 
     <!-- Right: Request a Report form -->
     <div class="cta-form reveal d1 cta-col">
-      <form class="cta-form-fields" id="ctaReportForm" onsubmit="submitReportForm(event);">
+      <form class="cta-form-fields" id="ctaReportForm" novalidate>
+        <input type="hidden" name="source" value="section">
+        <div class="hp-field" aria-hidden="true">
+          <label for="cf-website">Leave this field empty</label>
+          <input type="text" id="cf-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="cta-field">
           <label for="cf-name">Name</label>
-          <input type="text" id="cf-name" placeholder="Your full name" required>
+          <input type="text" id="cf-name" name="name" placeholder="Your full name"
+                 autocomplete="name" required aria-describedby="cf-name-err">
+          <p class="field-err" id="cf-name-err"></p>
         </div>
         <div class="cta-field">
           <label for="cf-email">Email</label>
-          <input type="email" id="cf-email" placeholder="you@company.com" required>
+          <input type="email" id="cf-email" name="email" placeholder="you@company.com"
+                 autocomplete="email" required aria-describedby="cf-email-err">
+          <p class="field-err" id="cf-email-err"></p>
         </div>
         <div class="cta-field">
           <label for="cf-org">Organisation</label>
-          <input type="text" id="cf-org" placeholder="Company or institution" required>
+          <input type="text" id="cf-org" name="organisation" placeholder="Company or institution"
+                 autocomplete="organization" aria-describedby="cf-org-err">
+          <p class="field-err" id="cf-org-err"></p>
         </div>
+        <label class="consent-row" for="cf-consent">
+          <input type="checkbox" id="cf-consent" name="consent" value="yes" required
+                 aria-describedby="cf-consent-err">
+          <span>I agree to Electrogenos storing my details to send me the report and related updates.</span>
+        </label>
+        <p class="field-err" id="cf-consent-err"></p>
         <div class="cta-form-submit" style="display:flex;gap:12px;align-items:center;">
-          <button type="submit" class="btn" style="font-size:14px;padding:12px 28px;">Request a Report &nbsp;→</button>
+          <button type="submit" class="btn" style="font-size:14px;padding:12px 28px;">Request a Report &nbsp;&rarr;</button>
         </div>
+        <p class="form-status" role="status" aria-live="polite"></p>
       </form>
       <div id="ctaFormSuccess" style="display:none;padding:20px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;color:#166534;font-size:16px;font-weight:600;margin-top:12px;">✓ Thanks! We'll send the report to your inbox shortly</div>
     </div>
@@ -2505,11 +2558,122 @@
     applyMode();
   })();
 
-  function submitReportForm(e) {
-    e.preventDefault();
-    document.getElementById('ctaReportForm').style.display = 'none';
-    document.getElementById('ctaFormSuccess').style.display = 'block';
-  }
+  // ── REPORT FORMS (modal + CTA section) ──
+  (function () {
+    /* Google Apps Script web app. It MUST be deployed with
+       "Who has access: Anyone" — a domain-restricted deployment answers
+       anonymous POSTs with 401 and sends no CORS headers, so nothing is
+       recorded and the browser cannot read the reply. */
+    const REPORT_ENDPOINT = 'https://script.google.com/a/macros/electrogenos.com/s/AKfycbxnOp9MXm21UC59qSXjVWa7rKq_O2cpXC-TYcolKnWPLr7AvqmjCEEIugGa3Ddi0Pf-oA/exec';
+
+    const ERR_GENERIC = 'Something went wrong. Please try again or email info@electrogenos.com.';
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    /* The report modal lives after this inline script in the document, so
+       every lookup below has to wait until parsing has finished. */
+    function init() {
+    const modal = document.getElementById('reportModal');
+    let lastFocus = null;
+
+    function openModal() {
+      if (!modal) return;
+      lastFocus = document.activeElement;
+      modal.classList.add('open');
+      const first = modal.querySelector('input:not([type="hidden"]):not([tabindex="-1"])');
+      if (first) first.focus();
+    }
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.remove('open');
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    document.querySelectorAll('[data-open-report]').forEach(b => b.addEventListener('click', openModal));
+    document.querySelectorAll('[data-close-report]').forEach(b => b.addEventListener('click', closeModal));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal && modal.classList.contains('open')) closeModal();
+    });
+
+    function wire(form, successEl) {
+      if (!form) return;
+      const btn    = form.querySelector('button[type="submit"]');
+      const status = form.querySelector('.form-status');
+      const label  = btn ? btn.innerHTML : '';
+
+      function setErr(field, msg) {
+        const el = field.getAttribute('aria-describedby');
+        const box = el ? document.getElementById(el) : null;
+        if (box) box.textContent = msg || '';
+        field.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+      function clearErrors() {
+        form.querySelectorAll('.field-err').forEach(p => { p.textContent = ''; });
+        form.querySelectorAll('[aria-invalid]').forEach(f => f.setAttribute('aria-invalid', 'false'));
+        if (status) { status.textContent = ''; status.style.color = ''; }
+      }
+
+      function validate() {
+        const name    = form.elements.name;
+        const email   = form.elements.email;
+        const consent = form.elements.consent;
+        let firstBad = null;
+        if (!name.value.trim()) { setErr(name, 'Please enter your name.'); firstBad = firstBad || name; }
+        else setErr(name, '');
+        if (!email.value.trim()) { setErr(email, 'Please enter your email address.'); firstBad = firstBad || email; }
+        else if (!EMAIL_RE.test(email.value.trim())) { setErr(email, 'Please enter a valid email address, like you@company.com.'); firstBad = firstBad || email; }
+        else setErr(email, '');
+        if (!consent.checked) { setErr(consent, 'Please tick the box so we can send you the report.'); firstBad = firstBad || consent; }
+        else setErr(consent, '');
+        return firstBad;
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        clearErrors();
+
+        const bad = validate();
+        if (bad) {
+          if (status) status.textContent = 'Please check the highlighted fields.';
+          bad.focus();
+          return;
+        }
+        /* Spam trap: silently accept and go no further. */
+        if (form.elements.website && form.elements.website.value.trim()) return;
+
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+        try {
+          /* FormData keeps this a "simple" request, so no CORS preflight —
+             Apps Script cannot answer an OPTIONS probe. A correctly deployed
+             web app redirects to googleusercontent.com, which does send
+             Access-Control-Allow-Origin, so res.ok is readable. */
+          const res = await fetch(REPORT_ENDPOINT, { method: 'POST', body: new FormData(form) });
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          form.style.display = 'none';
+          if (successEl) successEl.style.display = 'block';
+          form.reset();
+        } catch (err) {
+          /* Network failure, CORS block or a non-2xx reply all land here. The
+             details go to the console so this stays diagnosable; the visitor
+             sees one message and keeps everything they typed. */
+          console.warn('[report form] submission failed:', err);
+          if (status) { status.textContent = ERR_GENERIC; status.style.color = '#B91C1C'; }
+          if (btn) { btn.disabled = false; btn.innerHTML = label; }
+        }
+      });
+
+      /* Clear a field's error as soon as the visitor fixes it. */
+      form.querySelectorAll('input').forEach(f => f.addEventListener('input', () => {
+        if (f.getAttribute('aria-invalid') === 'true') setErr(f, '');
+      }));
+    }
+
+    wire(document.getElementById('ctaReportForm'), document.getElementById('ctaFormSuccess'));
+    wire(document.getElementById('modalReportForm'), document.getElementById('reportSuccess'));
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
 
   // ── SCROLL RESET ──
   (function() {
@@ -2522,16 +2686,43 @@
 
 <!-- ── REPORT MODAL ── -->
 <div class="report-modal" id="reportModal">
-  <div class="report-backdrop" onclick="document.getElementById('reportModal').classList.remove('open')"></div>
+  <div class="report-backdrop" data-close-report></div>
   <div class="report-box">
-    <button class="report-close" onclick="document.getElementById('reportModal').classList.remove('open')">&times;</button>
+    <button type="button" class="report-close" data-close-report aria-label="Close">&times;</button>
     <h3>Request a Report</h3>
     <p class="report-sub">We'll send you our full technical and commercial report</p>
-    <form onsubmit="this.style.display='none';document.getElementById('reportSuccess').style.display='block';return false;">
-      <div class="cta-field"><label>Name</label><input type="text" placeholder="Your full name" required></div>
-      <div class="cta-field"><label>Email</label><input type="email" placeholder="you@company.com" required></div>
-      <div class="cta-field"><label>Organisation</label><input type="text" placeholder="Company or institution" required></div>
-      <button type="submit" class="btn" style="width:100%;margin-top:8px;">Submit &nbsp;→</button>
+    <form id="modalReportForm" novalidate>
+        <input type="hidden" name="source" value="modal">
+        <div class="hp-field" aria-hidden="true">
+          <label for="mf-website">Leave this field empty</label>
+          <input type="text" id="mf-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="cta-field">
+          <label for="mf-name">Name</label>
+          <input type="text" id="mf-name" name="name" placeholder="Your full name"
+                 autocomplete="name" required aria-describedby="mf-name-err">
+          <p class="field-err" id="mf-name-err"></p>
+        </div>
+        <div class="cta-field">
+          <label for="mf-email">Email</label>
+          <input type="email" id="mf-email" name="email" placeholder="you@company.com"
+                 autocomplete="email" required aria-describedby="mf-email-err">
+          <p class="field-err" id="mf-email-err"></p>
+        </div>
+        <div class="cta-field">
+          <label for="mf-org">Organisation</label>
+          <input type="text" id="mf-org" name="organisation" placeholder="Company or institution"
+                 autocomplete="organization" aria-describedby="mf-org-err">
+          <p class="field-err" id="mf-org-err"></p>
+        </div>
+        <label class="consent-row" for="mf-consent">
+          <input type="checkbox" id="mf-consent" name="consent" value="yes" required
+                 aria-describedby="mf-consent-err">
+          <span>I agree to Electrogenos storing my details to send me the report and related updates.</span>
+        </label>
+        <p class="field-err" id="mf-consent-err"></p>
+      <button type="submit" class="btn" style="width:100%;margin-top:8px;">Submit &nbsp;&rarr;</button>
+        <p class="form-status" role="status" aria-live="polite"></p>
     </form>
     <div id="reportSuccess" style="display:none;padding:20px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;color:#166534;font-size:16px;font-weight:600;">✓ Thanks! We'll send the report to your inbox shortly</div>
   </div>
