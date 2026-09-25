@@ -2649,6 +2649,14 @@
              Access-Control-Allow-Origin, so res.ok is readable. */
           const res = await fetch(REPORT_ENDPOINT, { method: 'POST', body: new FormData(form) });
           if (!res.ok) throw new Error('HTTP ' + res.status);
+          /* Apps Script answers 200 even when it reports a failure, and it
+             serves an HTML error page if doPost throws. So the body decides:
+             only an explicit { ok: true } counts as success. */
+          const body = await res.text();
+          let data;
+          try { data = JSON.parse(body); }
+          catch (_) { throw new Error('Non-JSON reply (script error page?)'); }
+          if (!data || data.ok !== true) throw new Error('Endpoint reported ok:false');
           form.style.display = 'none';
           if (successEl) successEl.style.display = 'block';
           form.reset();
