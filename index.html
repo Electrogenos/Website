@@ -1963,6 +1963,9 @@
     const poly   = document.getElementById('trdTriPoly');
     const cards  = document.getElementById('tradeoffMobCards');
     const header = document.querySelector('.tradeoff-header');
+    const sticky = document.querySelector('.tradeoff-sticky');
+    const circles = document.getElementById('tradeoffCircles');
+    const nav = document.querySelector('nav, .nav');
     if (!track || !stage) return;
 
     const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
@@ -2006,32 +2009,108 @@
     const reduce  = window.matchMedia('(prefers-reduced-motion: reduce)');
     let SW = 0, SH = 0, R = 60, CX = 0, CY = 0, laidOut = false;
 
+    const DIA_MIN = 120;   // 7.5rem floor for the bubbles
+    const VS_MIN  = 150;   // shrink the vertical spread this far before the bubbles
+
+    /* Place the caption beside its bubble and report the height it renders at.
+       Width is capped to the room left so it can never leave the container. */
+    function placeCap(n, R) {
+      if (!n.cap) return 0;
+      const avail = n.side === 'right' ? SW - (n.x + R + CAP_GAP) : n.x - R - CAP_GAP;
+      n.cap.style.maxWidth = '';
+      const natural = n.cap.offsetWidth;
+      n.cap.style.maxWidth = Math.max(0, Math.min(natural, avail)) + 'px';
+      if (n.side === 'right') {
+        n.cap.style.left  = (n.x + R + CAP_GAP) + 'px';
+        n.cap.style.right = '';
+      } else {
+        n.cap.style.right = (SW - (n.x - R - CAP_GAP)) + 'px';
+        n.cap.style.left  = '';
+      }
+      return n.cap.offsetHeight;
+    }
+
+    function setDia(d) {
+      NODES.forEach(n => { if (n.el) n.el.style.width = d ? d + 'px' : ''; });
+    }
+
     function layout() {
-      const r = stage.getBoundingClientRect();
-      SW = r.width; SH = r.height;
+      const sr = stage.getBoundingClientRect();
+      SW = sr.width; SH = sr.height;
       if (!SW || !SH) return false;
-      const first = NODES[0].el;
-      R  = first ? first.offsetWidth / 2 : 60;
-      CX = SW / 2; CY = SH / 2;
       tri.setAttribute('viewBox', '0 0 ' + SW + ' ' + SH);
+      NODES.forEach(n => { n.x = n.fx * SW; });
+
+      /* Measured against .tradeoff-sticky rather than the live viewport, so the
+         result is identical whether or not the scene is pinned yet. */
+      const stickyR = sticky.getBoundingClientRect();
+      const vh      = stickyR.height;
+      const toStage = y => y - (sr.top - stickyR.top);      // sticky-local -> stage-local
+      const clamp   = (lo, v, hi) => Math.max(lo, Math.min(v, hi));
+
+      /* Brand block sits at the optical centre of the area below the fixed
+         navbar, and the bubbles converge on exactly that point so the burst
+         opens onto the logo. */
+      const navH    = nav ? nav.getBoundingClientRect().height : 0;
+      const brandCY = navH + (vh - navH) * 0.46;
+      CX = SW / 2;
+      CY = toStage(brandCY);
+
+      if (reduce.matches) {                                    // reduced motion: simple + safe
+        /* The brand block is in normal flow here, so it must keep its own
+           top: auto — never the absolute offset used by the scroll scene. */
+        if (brand) brand.style.top = '';
+        setDia(0);
+        R = NODES[0].el ? NODES[0].el.offsetWidth / 2 : 60;
+        NODES.forEach(n => {
+          n.y = n.fy * SH;
+          if (n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
+          placeCap(n, R);
+          if (n.cap) n.cap.style.top = n.y + 'px';
+        });
+        laidOut = true;
+        return true;
+      }
+
+      // Band the triangle must live in: below the heading, above the fold.
+      const hdrBottom = header.getBoundingClientRect().bottom - stickyR.top;
+      const gapTop    = clamp(40, vh * 0.06, 72);
+      const gapBot    = clamp(56, vh * 0.08, 96);
+      if (brand) brand.style.top = (brandCY - (circles.getBoundingClientRect().top - stickyR.top)) + 'px';
+      const bandTop   = hdrBottom + gapTop;
+      const bandBot   = vh - gapBot;
+      const B         = bandBot - bandTop;
+
+      /* Fit the triangle to the band from the real rendered heights: shrink the
+         vertical spread first, and only then the bubbles, so a caption is never
+         clipped on a short screen. */
+      setDia(0);
+      let dia = NODES[0].el ? NODES[0].el.offsetWidth : 140;
+      let vs = 0, topOver = 0, botOver = 0;
+      for (let i = 0; i < 12; i++) {
+        setDia(dia);
+        R = dia / 2;
+        const hEff  = placeCap(NODES[0], R);
+        const hCost = placeCap(NODES[1], R);
+        const hDur  = placeCap(NODES[2], R);
+        topOver = Math.max(R, hEff / 2);
+        botOver = Math.max(R, hCost / 2, hDur / 2);
+        vs = Math.min(clamp(200, B * 0.5, 320), B - topOver - botOver);
+        if (vs >= VS_MIN || dia <= DIA_MIN) break;
+        dia = Math.max(DIA_MIN, dia - 8);
+      }
+      vs = Math.max(0, vs);
+
+      // Centre the whole block in the band, so both gaps stay at or above
+      // their minimums instead of the triangle hugging the bottom.
+      const H      = topOver + vs + botOver;
+      const effY   = bandTop + Math.max(0, (B - H) / 2) + topOver;
+      const baseY  = effY + vs;
+
       NODES.forEach(n => {
-        n.x = n.fx * SW; n.y = n.fy * SH;
+        n.y = toStage(n.id === 'eff' ? effY : baseY);
         if (n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
-        if (!n.cap) return;
-        /* Pin the caption to the outer edge of its bubble, then cap its width
-           to whatever room is left so it stays inside the stage. */
-        const avail = n.side === 'right' ? SW - (n.x + R + CAP_GAP) : n.x - R - CAP_GAP;
-        n.cap.style.maxWidth = '';
-        const natural = n.cap.offsetWidth;
-        n.cap.style.maxWidth = Math.max(0, Math.min(natural, avail)) + 'px';
-        n.cap.style.top = n.y + 'px';
-        if (n.side === 'right') {
-          n.cap.style.left  = (n.x + R + CAP_GAP) + 'px';
-          n.cap.style.right = '';
-        } else {
-          n.cap.style.right = (SW - (n.x - R - CAP_GAP)) + 'px';
-          n.cap.style.left  = '';
-        }
+        if (n.cap) n.cap.style.top = n.y + 'px';
       });
       laidOut = true;
       return true;
