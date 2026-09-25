@@ -412,7 +412,6 @@
       width: 100%; height: 2.25rem; object-fit: contain; object-position: center;
       transition: opacity .2s;
     }
-    .marquee-set img:hover { opacity: .75; }
 
     /* ── REVEAL UTILITIES ─────────────────────────────────────────────── */
     .word-reveal .word {
@@ -707,21 +706,20 @@
     .recognition { padding-block: clamp(3.5rem, 8vw, 6rem); background: var(--light); }
     .rec-head { margin-bottom: 2.5rem; }
 
-    .rec-group { margin-bottom: 40px; }
-    .rec-group:last-child { margin-bottom: 0; }
+    /* 56px between group blocks. The Programmes block carries the same
+       margin inside the collapsible panel, whose overflow:hidden clips it
+       while collapsed, so no phantom gap appears before it opens. */
+    .rec-group + .rec-group, .rec-collapse .rec-group { margin-top: 56px; }
     .rec-group-title {
       font-size: 13px; font-weight: 600; text-transform: uppercase;
-      letter-spacing: .08em; color: #64748B; margin: 0 0 12px;
+      letter-spacing: .08em; color: #64748B; margin: 0 0 16px;
     }
-    .rec-grid {
-      display: grid; gap: 16px;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-    @media (min-width: 48rem) { .rec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
-    @media (min-width: 64rem) { .rec-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); } }
-    @media (min-width: 75rem) { .rec-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); } }
+    /* Flex rather than grid so a short last row stretches to both edges
+       instead of leaving empty columns. */
+    .rec-grid { display: flex; flex-wrap: wrap; align-items: stretch; gap: 16px; }
 
     .rec-card {
+      flex: 1 1 100%;
       position: relative; min-height: 150px; padding: 20px 16px;
       background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
       display: flex; flex-direction: column; align-items: center;
@@ -739,19 +737,21 @@
       flex: 1; display: flex; align-items: center; justify-content: center;
       width: 100%; min-height: 0; margin-top: 8px;
     }
+    /* Fixed 160x56 box: a wide wordmark fills the width, a square mark fills
+       the height, and every logo occupies the same footprint. */
     .rec-logo img {
-      max-height: 44px; max-width: 75%; width: auto; height: auto;
-      object-fit: contain;
-      filter: grayscale(1); opacity: .75;
-      transition: filter .2s ease, opacity .2s ease;
+      width: 160px; height: 56px; max-width: 100%;
+      object-fit: contain; object-position: center;
     }
     /* Fallback when the logo file is not in the repo yet. */
     .rec-wordmark {
       font-size: 16px; font-weight: 600; color: #334155;
       text-align: center; line-height: 1.3;
     }
+    @media (min-width: 48rem) { .rec-card { flex: 1 1 calc(50% - 8px); } }
+    @media (min-width: 64rem) { .rec-card { flex: 1 1 calc(25% - 12px); } }
+
     .rec-card:hover, .rec-card:focus-visible { border-color: var(--blue); }
-    .rec-card:hover .rec-logo img, .rec-card:focus-visible .rec-logo img { filter: none; opacity: 1; }
     a.rec-card:hover, a.rec-card:focus-visible { transform: translateY(-2px); }
     .rec-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
     .rec-ext { position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; color: #94A3B8; }
@@ -800,7 +800,7 @@
     .marquee-track:hover, .marquee-track:focus-within { animation-play-state: paused; }
 
     @media (prefers-reduced-motion: reduce) {
-      .rec-card, .rec-logo img, .rec-collapse, .rec-more svg { transition: none; }
+      .rec-card, .rec-collapse, .rec-more svg { transition: none; }
       a.rec-card:hover, a.rec-card:focus-visible { transform: none; }
       /* Static wrapping row instead of a moving strip. */
       .marquee-outer { overflow: visible; }
@@ -1689,7 +1689,7 @@
   <div class="container">
     <div class="rec-head reveal">
       <p class="t-eyebrow word-reveal">Recognition</p>
-      <h2 class="t-h2 word-reveal">Awarded and <strong class="t-accent">backed</strong> by leaders in energy</h2>
+      <h2 class="t-h2 word-reveal">Awarded, funded and <strong class="t-accent">accelerated</strong></h2>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
 
@@ -2386,7 +2386,7 @@
         logo: 'recognition/eureka-gcc.png',
         url: 'https://www.khaleejtimes.com/kt-network/nahyan-bin-mubarak-crowns-timble-ai-as-grand-winner-of-4th-eureka-gcc-in-dubai-2', published: true },
       { group: 'Awards', label: 'Winner, Eco Innovator 2024', name: 'SeedLegals Startup Awards',
-        logo: 'recognition/seedlegals.png',
+        logo: 'recognition/seedlegals.svg',
         url: 'https://seedlegals.com/resources/startup-awards-winners-2024/', published: true },
       { group: 'Awards', label: 'Winner, South Central 2023', name: 'KPMG UK Tech Innovator',
         logo: 'company_logos/20.png',
@@ -2400,25 +2400,23 @@
       { group: 'Funded by', label: 'Industrial Collaboration Programme', name: 'Henry Royce Institute',
         logo: 'company_logos/7.png', url: '', published: true },
 
-      { group: 'Programmes', label: 'Accelerated by, ClimateTech Cohort 15', name: 'Hub71',
-        logo: 'company_logos/6.png',
+      { group: 'Programmes', label: 'ClimateTech Cohort 15, 2024', name: 'Hub71',
+        logo: 'recognition/hub71.svg',
         url: 'https://www.hub71.com/latest-news/press-release/hub71-welcomes-21-startups-in-15th-cohort-to-abu-dhabi-that-have-raised-over-usd-130-million-in-funding', published: true },
-      { group: 'Programmes', label: 'Accelerated by, Entrepreneurs Fund 2024', name: 'Repsol Foundation',
-        logo: 'company_logos/2.png',
+      { group: 'Programmes', label: 'Entrepreneurs Fund, 2024', name: 'Repsol Foundation',
+        logo: 'recognition/repsol-foundation.png',
         url: 'https://www.fundacionrepsol.com/en/noticias/fundacion-repsol-incorpora-7-nuevas-startups-fondo-de-emprendedores/', published: true },
-      { group: 'Programmes', label: 'Selected, Hydrogen Challenge 2024', name: 'All4Zero',
+      { group: 'Programmes', label: 'Hydrogen Challenge, 2024', name: 'All4Zero',
         logo: 'recognition/all4zero.png',
         url: 'https://all4zero-hub.com/wp-content/uploads/2024/06/20062024_NdP_All4Zero-All4Zero-presents-12-technological-solutions.pdf', published: true },
-      { group: 'Programmes', label: 'Finalist, Ramp-Up Season 4', name: 'EGA',
+      { group: 'Programmes', label: 'Ramp-Up Season 4 finalist, 2026', name: 'EGA',
         logo: 'company_logos/10.png', url: '', published: true },
-      { group: 'Programmes', label: 'Accelerated by, 2023', name: 'H2UB',
+      { group: 'Programmes', label: 'Accelerator, 2023', name: 'H2UB',
         logo: 'company_logos/13.png', url: '', published: true },
-      { group: 'Programmes', label: 'Accelerated by, ScaleForClimate 2025', name: 'NYSERDA',
+      { group: 'Programmes', label: 'ScaleForClimate, 2025', name: 'NYSERDA',
         logo: 'company_logos/16.png', url: '', published: true },
-      { group: 'Programmes', label: 'Accelerated by, TechX 2023', name: 'Net Zero Technology Centre',
+      { group: 'Programmes', label: 'TechX accelerator, 2023', name: 'Net Zero Technology Centre',
         logo: 'recognition/nztc.png', url: '', published: true },
-      { group: 'Programmes', label: 'Commercialisation Bootcamp 2026', name: 'Founders Factory',
-        logo: 'recognition/founders-factory.png', url: '', published: true },
     ];
 
     const PRESS = [
@@ -2445,7 +2443,7 @@
        broken image and new files need no code change. */
     function logoHtml(r) {
       return '<span class="rec-logo"><img src="' + esc(r.logo) + '" alt="' + esc(r.name) + '"' +
-             ' width="160" height="44" loading="lazy"' +
+             ' width="160" height="56" loading="lazy"' +
              ' onerror="this.parentNode.innerHTML=\'<span class=&quot;rec-wordmark&quot;>' +
              esc(r.name).replace(/'/g, '&#39;') + '</span>\'"></span>';
     }
@@ -2503,8 +2501,7 @@
        wordmark, so the strip stays purely visual. */
     const MARQUEE_ORDER = ['Make it in the Emirates', 'Eureka! GCC', 'SeedLegals Startup Awards',
       'KPMG UK Tech Innovator', 'Innovate UK', 'Energy Catalyst', 'Henry Royce Institute', 'Hub71',
-      'Repsol Foundation', 'All4Zero', 'EGA', 'H2UB', 'NYSERDA', 'Net Zero Technology Centre',
-      'Founders Factory'];
+      'Repsol Foundation', 'All4Zero', 'EGA', 'H2UB', 'NYSERDA', 'Net Zero Technology Centre'];
 
     const setA = document.getElementById('marqueeSetA');
     const setB = document.getElementById('marqueeSetB');
