@@ -528,6 +528,7 @@
     .tradeoff-header { text-align: left; width: 100%; margin-bottom: 1.75rem; position: relative; z-index: 2; transition: opacity .3s ease; }
 
     .trd-bub, .tradeoff-circles, .tradeoff-brand { display: none; }
+    .trd-stage, .trd-tri, .trd-cap { display: none; }
 
     /* Below 1024px the scroll-driven circle scene is replaced by a plain
        list. Deliberately NO card chrome: the soft blue icon bubble echoes the
@@ -933,8 +934,8 @@
        so below this width the plain list above is used instead.
        ════════════════════════════════════════════════════════════════════ */
     @media (min-width: 64rem) {
-      /* ── TRADEOFF: sticky scene with floating circles ── */
-      .tradeoff-track { height: 250vh; }
+      /* ── TRADEOFF: sticky "pick two" triangle ── */
+      .tradeoff-track { height: 180vh; }
       .tradeoff-sticky {
         position: sticky; top: 0; height: 100vh;
         justify-content: flex-start;
@@ -943,15 +944,45 @@
       .tradeoff-header { margin-bottom: clamp(2.5rem, 8vh, 5rem); }
       .tradeoff-mob-cards { display: none; }
 
-      .tradeoff-circles { display: block; position: absolute; inset: 0; }
+      /* In flow as a flex child, so it fills exactly the space left below
+         the heading — the triangle is laid out in that box, never over it. */
+      .tradeoff-circles {
+        display: block; position: relative; inset: auto;
+        flex: 1 1 auto; width: 100%; min-height: 0;
+      }
+      /* Same content box as .container, so every vertex and caption is
+         inside the shared 1200px column. All positions are set in px by the
+         script from this element's box. */
+      .trd-stage {
+        display: block; position: relative; height: 100%;
+        width: calc(min(var(--maxw), 100%) - 2 * var(--pad-x));
+        margin-inline: auto;
+      }
+      /* Decorative: the polygon points are rewritten each frame from the
+         bubbles' live centres, so the dashes follow the idle float. */
+      .trd-tri {
+        display: block; position: absolute; inset: 0;
+        width: 100%; height: 100%; z-index: 0;
+        pointer-events: none; overflow: visible;
+      }
       .tc {
         position: absolute; width: clamp(7.5rem, 11vw, 10rem); aspect-ratio: 1;
-        top: 50%; left: 50%; translate: -50% -50%;
+        z-index: 1;
         border-radius: 50%; display: flex; flex-direction: column;
         align-items: center; justify-content: center;
         background: radial-gradient(circle at 38% 35%, #eaf4fd 0%, #cce4f5 60%, #b8d9f0 100%);
         box-shadow: 0 12px 48px rgba(59,130,246,.12); will-change: transform;
       }
+      /* Captions sit outward from the triangle; the script pins each one to
+         the outer edge of its bubble and caps the width to the space left. */
+      .trd-cap {
+        display: block; position: absolute; z-index: 1;
+        max-width: 26ch; pointer-events: none;
+        will-change: transform, opacity;
+      }
+      .trd-cap-title { font-size: 18px; font-weight: 600; line-height: 1.3; color: var(--navy); margin-bottom: .25rem; }
+      .trd-cap-body  { font-size: 16px; line-height: 1.6; color: #475569; }
+      .trd-cap-cost { text-align: right; }
       /* Icon is a share of the circle so it scales with it. */
       .tc-icon { width: 45%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; margin-bottom: .5rem; }
       .tc-icon img { width: 100%; height: 100%; object-fit: contain;
@@ -986,6 +1017,22 @@
       .trd-rb2  { width: 115px; height: 115px; top: 55%; right: -15px; animation-duration: 7.5s; animation-delay: 0.4s; }
       .trd-rb2b { width: 55px;  height: 55px;  top: 75%; right: -10px; animation-duration: 5.2s; animation-delay: 3.0s; }
       .trd-rb3  { width: 90px;  height: 90px;  top: 88%; right: -10px; animation-duration: 8.5s; animation-delay: 2.2s; }
+    }
+
+    /* Reduced motion: drop the sticky scene entirely. The triangle and its
+       captions are shown statically and the brand block follows in normal
+       flow, so the whole story is still readable without any animation. */
+    @media (min-width: 64rem) and (prefers-reduced-motion: reduce) {
+      .tradeoff-track { height: auto; }
+      .tradeoff-sticky { position: relative; height: auto; padding-bottom: 4rem; }
+      .trd-stage { height: 34rem; }
+      .trd-bub { animation: none; }
+      .tradeoff-brand {
+        position: relative; top: auto; left: auto;
+        transform: none; opacity: 1; transition: none;
+        margin: 2.5rem auto 0;
+      }
+      .tradeoff-brand img { margin-inline: auto; }
     }
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1329,41 +1376,31 @@
     <div class="container">
     <div class="tradeoff-header">
       <p class="t-eyebrow word-reveal">The problem</p>
-      <h2 class="fails-line t-h2 word-reveal"><span class="gh">Green hydrogen production</span> <strong class="t-accent">fails</strong> today because of a tradeoff between…</h2>
+      <h2 class="fails-line t-h2 word-reveal">Today's electrolysers force a <strong class="t-accent">trade-off</strong> between…</h2>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
-    <!-- Mobile-only tradeoff cards -->
-    <div class="tradeoff-mob-cards">
-      <div class="tmc tmc-cost">
-        <span class="tmc-bubble"><img src="brand_assets/cost.png" alt="Cost" loading="lazy"></span>
-        <div><div class="tmc-title">Cost</div><div class="tmc-body">High catalyst material cost makes large-scale deployment economically unfeasible</div></div>
-      </div>
-      <div class="tmc tmc-eff">
-        <span class="tmc-bubble"><img src="brand_assets/efficiency.png" alt="Efficiency" loading="lazy"></span>
-        <div><div class="tmc-title">Efficiency</div><div class="tmc-body">Excessive cell voltage raises electricity consumption per kg of hydrogen produced</div></div>
-      </div>
-      <div class="tmc tmc-dur">
-        <span class="tmc-bubble"><img src="brand_assets/durability.png" alt="Durability" loading="lazy"></span>
-        <div><div class="tmc-title">Durability</div><div class="tmc-body">Membrane degradation causes frequent replacements and costly system downtime</div></div>
-      </div>
-    </div>
+    <!-- Cards (mobile) and captions (desktop) both render from the
+         TRADEOFF array in the page script, so the copy cannot drift. -->
+    <div class="tradeoff-mob-cards" id="tradeoffMobCards"></div>
     </div>
     <div class="tradeoff-circles" id="tradeoffCircles">
-      <div class="tc tc-cost" id="tcCost">
-        <div class="tc-icon"><img src="brand_assets/cost.png" alt="Cost" loading="lazy"></div>
-        <span class="tc-label">Cost</span>
-      </div>
-      <div class="tc tc-dur" id="tcDur">
-        <div class="tc-icon"><img src="brand_assets/durability.png" alt="Durability" loading="lazy"></div>
-        <span class="tc-label">Durability</span>
-      </div>
-      <div class="tc tc-eff" id="tcEff">
-        <div class="tc-icon"><img src="brand_assets/efficiency.png" alt="Efficiency" loading="lazy"></div>
-        <span class="tc-label">Efficiency</span>
+      <!-- Stage matches the .container content box, so the triangle and
+           captions can never spill outside the shared 1200px column. -->
+      <div class="trd-stage" id="trdStage">
+        <svg class="trd-tri" id="trdTri" aria-hidden="true" focusable="false">
+          <polygon id="trdTriPoly" fill="none" stroke="#93C5FD" stroke-width="1.5"
+                   stroke-dasharray="4 6" opacity=".7"></polygon>
+        </svg>
+        <div class="tc tc-cost" id="tcCost"></div>
+        <div class="tc tc-dur"  id="tcDur"></div>
+        <div class="tc tc-eff"  id="tcEff"></div>
+        <div class="trd-cap trd-cap-eff"  id="capEff"></div>
+        <div class="trd-cap trd-cap-cost" id="capCost"></div>
+        <div class="trd-cap trd-cap-dur"  id="capDur"></div>
       </div>
       <div class="tradeoff-brand" id="tradeoffBrand">
         <img src="brand_assets/logo.png" alt="Electrogenos" loading="lazy">
-        <div class="tradeoff-brand-cap">breaks the tradeoff</div>
+        <div class="tradeoff-brand-cap">breaks the trade-off</div>
       </div>
     </div>
   </div>
@@ -1889,123 +1926,217 @@
     setActive(0);   // Green Steel open on load; no mouseleave handler, so the last hovered item stays
   })();
 
-  // ── TRADEOFF CIRCLES ──
-  (function() {
-    const track = document.getElementById('tradeoffTrack');
-    const brand = document.getElementById('tradeoffBrand');
-    if (!track) return;
-    /* Radius is measured from the rendered circle (its size is now fluid),
-       and the play area uses documentElement.clientWidth — innerWidth
-       includes the scrollbar, which pushed circles past the right edge. */
-    let CR = 80, DIAM = 160;
-    let AW = 0, AH = 0, CX = 0, CY = 0, inited = false;
-    const circles = [
-      { el: document.getElementById('tcCost'), x:0, y:0, vx:  2.6, vy:  1.8 },
-      { el: document.getElementById('tcDur'),  x:0, y:0, vx: -2.2, vy:  2.4 },
-      { el: document.getElementById('tcEff'),  x:0, y:0, vx:  1.8, vy: -2.8 },
+  // ── THE PROBLEM: "pick two" trade-off triangle ──
+  (function () {
+    /* Single source of truth for this section. The mobile cards, the desktop
+       bubble labels and the desktop captions are all rendered from it, so the
+       copy can never drift between layouts. */
+    const TRADEOFF = [
+      { id: 'cost', title: 'Cost', icon: 'brand_assets/cost.png',
+        body: 'Cutting cost means pushing more current through each stack, which drives up cell voltage and wastes electricity.' },
+      { id: 'eff', title: 'Efficiency', icon: 'brand_assets/efficiency.png',
+        body: 'Running efficiently means oversized stacks or expensive catalysts, which pushes capex back up.' },
+      { id: 'dur', title: 'Durability', icon: 'brand_assets/durability.png',
+        body: 'Surviving the ramping and shutdowns of solar and wind means conservative designs or added protection, at the expense of cost and output.' },
     ];
-    let scrollRaw = 0, lastTs = null, rippleFired = false;
-    function easeIn3(t) { return t*t*t; }
-    window.addEventListener('scroll', function() {
-      if (!MQ_DESKTOP.matches) {
-        /* Drop any inline opacity left over from the desktop scene, so a
-           resize down can never leave the heading faded out. */
-        const h = document.querySelector('.tradeoff-header');
-        if (h && h.style.opacity) h.style.opacity = '';
-        return;
-      }
-      const rect = track.getBoundingClientRect();
-      const range = track.offsetHeight - window.innerHeight;
-      if (rect.top > window.innerHeight || rect.bottom < 0) return;
-      scrollRaw = Math.max(0, Math.min(1, -rect.top / range));
-      if (scrollRaw > 0.45) brand.classList.add('shown'); else brand.classList.remove('shown');
-      const header = document.querySelector('.tradeoff-header');
-      const hOp = scrollRaw > 0.20 ? Math.max(0, 1 - (scrollRaw - 0.20) / 0.20) : 1;
-      if (header) header.style.opacity = hOp.toFixed(3);
-      if (scrollRaw > 0.82 && !rippleFired) { rippleFired = true; brand.classList.add('locked'); setTimeout(() => brand.classList.remove('locked'), 1400); }
-      if (scrollRaw < 0.65) rippleFired = false;
-    }, { passive: true });
-    function collide(a, b) {
-      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy);
-      if (d >= DIAM || d < 1) return;
-      const nx = dx/d, ny = dy/d, overlap = (DIAM-d)*0.5;
-      a.x -= nx*overlap; a.y -= ny*overlap; b.x += nx*overlap; b.y += ny*overlap;
-      const dv = (a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
-      if (dv <= 0) return;
-      const imp = dv*0.92;
-      a.vx -= imp*nx; a.vy -= imp*ny; b.vx += imp*nx; b.vy += imp*ny;
-    }
-    function frame(ts) {
-      const dt = lastTs ? Math.min((ts-lastTs)/16.67,2.5) : 1; lastTs = ts;
-      if (!inited) {
-        const first = circles[0].el;
-        CR = first ? first.offsetWidth / 2 : 80; DIAM = CR * 2;
-        AW = document.documentElement.clientWidth; AH = window.innerHeight;
-        CX = AW/2; CY = AH*0.55;
-        circles[0].x=AW*0.20; circles[0].y=AH*0.60;
-        circles[1].x=AW*0.80; circles[1].y=AH*0.65;
-        circles[2].x=AW*0.50; circles[2].y=AH*0.80;
-        inited = true;
-      }
-      const flyP = easeIn3(Math.max(0, Math.min(1, (scrollRaw-0.20)/0.20)));
-      if (flyP === 0) {
-        circles.forEach(c => {
-          c.x += c.vx*dt; c.y += c.vy*dt;
-          const TOP_Y = AH*0.50+CR;
-          if (c.x < CR)      { c.x=CR;      c.vx= Math.abs(c.vx)*0.95; }
-          if (c.x > AW-CR)   { c.x=AW-CR;   c.vx=-Math.abs(c.vx)*0.95; }
-          if (c.y < TOP_Y)   { c.y=TOP_Y;   c.vy= Math.abs(c.vy)*0.95; }
-          if (c.y > AH-CR)   { c.y=AH-CR;   c.vy=-Math.abs(c.vy)*0.95; }
-          c.vx += (CX-c.x)*0.00012*dt; c.vy += (CY-c.y)*0.00012*dt;
-          const spd = Math.sqrt(c.vx*c.vx+c.vy*c.vy);
-          if (spd > 3.2) { c.vx*=3.2/spd; c.vy*=3.2/spd; }
-          if (spd < 1.6) { c.vx*=1.6/spd; c.vy*=1.6/spd; }
-        });
-        collide(circles[0],circles[1]); collide(circles[1],circles[2]); collide(circles[0],circles[2]);
-      }
-      circles.forEach((c, i) => {
-        if (!c.el) return;
-        const tx = c.x-CX, ty = c.y-CY;
-        const compress = Math.min(1, flyP/0.25);
-        const burst    = Math.max(0, (flyP-0.25)/0.75);
-        const scale = flyP < 0.25 ? 1-compress*0.12 : (1-0.12)+burst*1.4;
-        const op = flyP < 0.25 ? 1 : Math.max(0, 1-burst*1.4);
-        c.el.style.transform = `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${scale.toFixed(3)})`;
-        c.el.style.opacity = op.toFixed(3);
-      });
-      rafId = requestAnimationFrame(frame);
-    }
-    /* Run the loop only while the desktop layout is active, and recompute the
-       play area whenever the viewport changes size. */
-    let rafId = null;
-    function start() { if (rafId === null) { lastTs = null; rafId = requestAnimationFrame(frame); } }
-    function stop() {
-      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-      circles.forEach(c => { if (c.el) { c.el.style.transform = ''; c.el.style.opacity = ''; } });
-      inited = false;
-    }
-    window.addEventListener('resize', () => { inited = false; }, { passive: true });
-    MQ_DESKTOP.addEventListener('change', e => { e.matches ? start() : stop(); });
-    if (MQ_DESKTOP.matches) start();
-  })();
 
-  /* ─── SMOOTH INTERNAL LINKS ─── */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const href = a.getAttribute('href');
-      // href="#" is a JS trigger, and the Team link becomes team.html on
-      // small screens — querySelector('#') throws, so bail on both.
-      if (!href || href === '#' || href.charAt(0) !== '#') return;
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const track  = document.getElementById('tradeoffTrack');
+    const brand  = document.getElementById('tradeoffBrand');
+    const stage  = document.getElementById('trdStage');
+    const tri    = document.getElementById('trdTri');
+    const poly   = document.getElementById('trdTriPoly');
+    const cards  = document.getElementById('tradeoffMobCards');
+    const header = document.querySelector('.tradeoff-header');
+    if (!track || !stage) return;
+
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const byId = id => TRADEOFF.find(d => d.id === id);
+
+    // ── Both layouts render from the one array ──
+    if (cards) {
+      cards.innerHTML = TRADEOFF.map(d =>
+        '<div class="tmc tmc-' + d.id + '">' +
+          '<span class="tmc-bubble"><img src="' + esc(d.icon) + '" alt="' + esc(d.title) + '" loading="lazy"></span>' +
+          '<div><div class="tmc-title">' + esc(d.title) + '</div>' +
+          '<div class="tmc-body">' + esc(d.body) + '</div></div>' +
+        '</div>').join('');
+    }
+
+    /* Vertex fractions of the stage box: Efficiency on top, Cost bottom-left,
+       Durability bottom-right. Each bubble drifts on its own slow cycle. */
+    const NODES = [
+      { id: 'eff',  el: document.getElementById('tcEff'),  cap: document.getElementById('capEff'),
+        fx: 0.50, fy: 0.25, side: 'right', per: 7000, ph: 0 },
+      { id: 'cost', el: document.getElementById('tcCost'), cap: document.getElementById('capCost'),
+        fx: 0.30, fy: 0.75, side: 'left',  per: 8000, ph: 2300 },
+      { id: 'dur',  el: document.getElementById('tcDur'),  cap: document.getElementById('capDur'),
+        fx: 0.70, fy: 0.75, side: 'right', per: 6000, ph: 4100 },
+    ];
+
+    NODES.forEach(n => {
+      const d = byId(n.id);
+      if (n.el) {
+        n.el.innerHTML = '<div class="tc-icon"><img src="' + esc(d.icon) + '" alt="" loading="lazy"></div>' +
+                         '<span class="tc-label">' + esc(d.title) + '</span>';
+      }
+      if (n.cap) {
+        n.cap.innerHTML = '<div class="trd-cap-title">' + esc(d.title) + '</div>' +
+                          '<div class="trd-cap-body">' + esc(d.body) + '</div>';
       }
     });
-  });
 
-  // The team grid renders at every width now, so the nav "Team" link stays an
-  // on-page anchor (it used to swap to team.html below 768px).
+    const CAP_GAP = 20;
+    const reduce  = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let SW = 0, SH = 0, R = 60, CX = 0, CY = 0, laidOut = false;
+
+    function layout() {
+      const r = stage.getBoundingClientRect();
+      SW = r.width; SH = r.height;
+      if (!SW || !SH) return false;
+      const first = NODES[0].el;
+      R  = first ? first.offsetWidth / 2 : 60;
+      CX = SW / 2; CY = SH / 2;
+      tri.setAttribute('viewBox', '0 0 ' + SW + ' ' + SH);
+      NODES.forEach(n => {
+        n.x = n.fx * SW; n.y = n.fy * SH;
+        if (n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
+        if (!n.cap) return;
+        /* Pin the caption to the outer edge of its bubble, then cap its width
+           to whatever room is left so it stays inside the stage. */
+        const avail = n.side === 'right' ? SW - (n.x + R + CAP_GAP) : n.x - R - CAP_GAP;
+        n.cap.style.maxWidth = '';
+        const natural = n.cap.offsetWidth;
+        n.cap.style.maxWidth = Math.max(0, Math.min(natural, avail)) + 'px';
+        n.cap.style.top = n.y + 'px';
+        if (n.side === 'right') {
+          n.cap.style.left  = (n.x + R + CAP_GAP) + 'px';
+          n.cap.style.right = '';
+        } else {
+          n.cap.style.right = (SW - (n.x - R - CAP_GAP)) + 'px';
+          n.cap.style.left  = '';
+        }
+      });
+      laidOut = true;
+      return true;
+    }
+
+    const clamp01 = v => Math.max(0, Math.min(1, v));
+    const easeIn3 = t => t * t * t;
+
+    /* One frame of the scene for a given scroll progress and clock. Every
+       value is a pure function of scrollRaw, so scrolling back up reverses
+       each phase exactly. */
+    function render(scrollRaw, ts) {
+      if (!laidOut && !layout()) return;
+      const capP      = clamp01((scrollRaw - 0.15) / 0.10);   // 0.15–0.25 captions out
+      const convergeP = clamp01((scrollRaw - 0.25) / 0.20);   // 0.25–0.45 converge
+      const burstP    = clamp01((scrollRaw - 0.45) / 0.10);   // 0.45–0.55 burst
+      const conv      = easeIn3(convergeP);
+      const floatK    = 1 - convergeP;                        // float stops as they meet
+      const pts = [];
+
+      NODES.forEach(n => {
+        const th = ((ts + n.ph) % n.per) / n.per * Math.PI * 2;
+        const fx = Math.sin(th) * 4.0 * floatK;
+        const fy = Math.cos(th * 0.75) * 6.8 * floatK;
+        const px = n.x + fx + (CX - n.x) * conv;
+        const py = n.y + fy + (CY - n.y) * conv;
+        pts.push(px.toFixed(1) + ',' + py.toFixed(1));
+        if (n.el) {
+          const scale = burstP > 0 ? 0.88 + burstP * 1.4 : 1 - convergeP * 0.12;
+          const op    = burstP > 0 ? Math.max(0, 1 - burstP * 1.4) : 1;
+          n.el.style.transform = 'translate(-50%,-50%) translate(' +
+            (px - n.x).toFixed(2) + 'px,' + (py - n.y).toFixed(2) + 'px) scale(' + scale.toFixed(3) + ')';
+          n.el.style.opacity = op.toFixed(3);
+        }
+        if (n.cap) {
+          const dir = n.side === 'right' ? -1 : 1;   // drift toward its bubble
+          n.cap.style.opacity   = (1 - capP).toFixed(3);
+          n.cap.style.transform = 'translateY(-50%) translateX(' + (dir * capP * 16).toFixed(1) + 'px)';
+        }
+      });
+
+      poly.setAttribute('points', pts.join(' '));
+      poly.setAttribute('opacity', (0.7 * (1 - convergeP)).toFixed(3));
+    }
+
+    /* Static, animation-free version of the same opening state. */
+    function renderStatic() {
+      if (!layout()) return;
+      const pts = [];
+      NODES.forEach(n => {
+        pts.push(n.x.toFixed(1) + ',' + n.y.toFixed(1));
+        if (n.el)  { n.el.style.transform = 'translate(-50%,-50%)'; n.el.style.opacity = '1'; }
+        if (n.cap) { n.cap.style.opacity = '1'; n.cap.style.transform = 'translateY(-50%)'; }
+      });
+      poly.setAttribute('points', pts.join(' '));
+      poly.setAttribute('opacity', '.7');
+    }
+
+    // ── Scroll timeline ──
+    let scrollRaw = 0, rippleFired = false;
+    function onScroll() {
+      if (!MQ_DESKTOP.matches || reduce.matches) {
+        /* Drop any inline opacity left over from the desktop scene, so a
+           resize down can never leave the heading faded out. */
+        if (header && header.style.opacity) header.style.opacity = '';
+        return;
+      }
+      const rect  = track.getBoundingClientRect();
+      const range = track.offsetHeight - window.innerHeight;
+      if (rect.top > window.innerHeight || rect.bottom < 0 || range <= 0) return;
+      scrollRaw = clamp01(-rect.top / range);
+      if (scrollRaw > 0.50) brand.classList.add('shown'); else brand.classList.remove('shown');
+      /* Heading holds through the reading and caption phases, then clears the
+         screen so the brand reveal owns it. */
+      if (header) header.style.opacity = (1 - clamp01((scrollRaw - 0.40) / 0.10)).toFixed(3);
+      if (scrollRaw > 0.82 && !rippleFired) {
+        rippleFired = true; brand.classList.add('locked');
+        setTimeout(() => brand.classList.remove('locked'), 1400);
+      }
+      if (scrollRaw < 0.65) rippleFired = false;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // ── rAF, gated on desktop + visibility so it costs nothing elsewhere ──
+    let rafId = null, inView = false;
+    function frame(ts) { render(scrollRaw, ts); rafId = requestAnimationFrame(frame); }
+    function start() {
+      if (rafId !== null || reduce.matches || !MQ_DESKTOP.matches || !inView) return;
+      layout(); rafId = requestAnimationFrame(frame);
+    }
+    function stop() { if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; } }
+    function clearInline() {
+      NODES.forEach(n => {
+        if (n.el)  n.el.style.cssText = '';
+        if (n.cap) n.cap.style.cssText = '';
+      });
+      if (header) header.style.opacity = '';
+      laidOut = false;
+    }
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => {
+        inView = es[0].isIntersecting;
+        inView ? start() : stop();
+      }, { rootMargin: '200px 0px' }).observe(track);
+    } else { inView = true; }
+
+    function applyMode() {
+      stop();
+      if (!MQ_DESKTOP.matches) { clearInline(); return; }
+      if (reduce.matches)      { clearInline(); renderStatic(); return; }
+      onScroll(); start();
+    }
+    window.addEventListener('resize', () => {
+      laidOut = false;
+      if (reduce.matches && MQ_DESKTOP.matches) renderStatic();
+    }, { passive: true });
+    MQ_DESKTOP.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    applyMode();
+  })();
 
   // ── WATERFALL SVG CHART ──
   (function() {
