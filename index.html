@@ -268,8 +268,11 @@
       text-decoration-line: underline;
       text-decoration-color: var(--turquoise);
       text-decoration-thickness: .09em;
-      text-underline-offset: .1em;
-      text-decoration-skip-ink: auto;
+      /* skip-ink must be off or the rule breaks around the "g" descender and
+         no longer spans the word; the larger offset then clears the tail. */
+      text-decoration-skip-ink: none;
+      text-underline-offset: .22em;
+      padding-bottom: .1em;        /* room so the rule is never clipped */
     }
     .ht1 { animation: fadeUp .65s .1s  cubic-bezier(.22,1,.36,1) forwards; }
     .ht2 { animation: fadeUp .65s .28s cubic-bezier(.22,1,.36,1) forwards; }
