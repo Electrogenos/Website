@@ -261,6 +261,19 @@
     .hero-left { width: 100%; max-width: 47.5rem; }
     /* Reveal animation only — all type comes from .t-h1 / .t-accent / .t-deck */
     .ht1, .ht2 { display: block; opacity: 0; transform: translateY(24px); }
+    /* Turquoise rule under "green" only. All lengths are in em so the
+       underline scales with the heading at every breakpoint; skip-ink lets
+       it break cleanly around the descender of the "g". */
+    .hl-green {
+      text-decoration-line: underline;
+      text-decoration-color: var(--turquoise);
+      text-decoration-thickness: .09em;
+      /* skip-ink must be off or the rule breaks around the "g" descender and
+         no longer spans the word; the larger offset then clears the tail. */
+      text-decoration-skip-ink: none;
+      text-underline-offset: .22em;
+      padding-bottom: .1em;        /* room so the rule is never clipped */
+    }
     .ht1 { animation: fadeUp .65s .1s  cubic-bezier(.22,1,.36,1) forwards; }
     .ht2 { animation: fadeUp .65s .28s cubic-bezier(.22,1,.36,1) forwards; }
     .hero-sub {
@@ -284,16 +297,21 @@
        Positions are computed from each centre and radius, and the wrapper
        reserves the drift distance on every side so the layout never shifts. */
     .hero-visual {
-      --h2: 180px;
-      --stat: 110px;
-      --mv-h2: 9px;                  /* H2 max distance from rest   */
-      --mv-st: 12px;                 /* stat max distance from rest */
+      --h2: clamp(140px, 42vw, 180px);
+      --stat: clamp(110px, 32vw, 130px);
+      --mv-h2: 6px;                  /* H2 max distance from rest   */
+      --mv-st: 10px;                 /* stat max distance from rest */
+      /* Minimum legible type inside a stat bubble. Restored to the original
+         values at 1024px so the desktop cluster is untouched. */
+      --num-min: 1.5rem;
+      --lbl-min: 11px;
       --gap-hs: calc(var(--mv-h2) + var(--mv-st));
       --gap-ss: calc(var(--mv-st) * 2);
       position: relative;            /* bubbles anchor here, not the viewport */
       display: flex; align-items: center; justify-content: center;
       flex: 0 0 auto;
-      width: calc(var(--h2) + var(--mv-h2) * 2);
+      width: calc(var(--mv-h2) + var(--h2) + var(--gap-hs) + var(--stat) + var(--mv-st));
+      max-width: 100%;
       margin-inline: auto;           /* centred under the buttons on small screens */
       opacity: 0; transform: translateX(32px);
       animation: fadeRight .9s .3s cubic-bezier(.22,1,.36,1) forwards;
@@ -301,7 +319,7 @@
     .hero-bubble-wrap {
       position: relative;
       width: 100%;
-      height: calc(var(--h2) + var(--mv-h2) * 2);
+      height: calc(var(--stat) * 2 + var(--gap-ss) + var(--mv-st) * 2);
     }
 
     /* Drift paths — each traces a shallow arc in x and y. Every keyframe sits
@@ -323,9 +341,8 @@
     }
 
     .stat-bubble {
-      /* Hidden below 768px: at ~110px the "cost decrease vs. conventional
-         systems" label is not legible. The H2 bubble shows on its own. */
-      display: none;
+      /* Visible at every width. */
+      display: flex;
       position: absolute; border-radius: 50%;
       width: var(--stat); height: var(--stat); aspect-ratio: 1;
       left: calc(var(--mv-h2) + var(--h2) + var(--gap-hs));
@@ -339,13 +356,13 @@
     }
     /* Type is a fixed share of the bubble diameter (17.8% / 6.9% — the same
        ratios the old design used), with a floor so it stays legible. */
-    .stat-bubble-num { font-size: max(15px, calc(var(--stat) * .178)); font-weight: 700; color: var(--blue); }
-    .stat-bubble-lbl { font-size: max(10px, calc(var(--stat) * .069)); color: var(--muted); margin-top: .3em; }
+    .stat-bubble-num { font-size: max(var(--num-min), calc(var(--stat) * .178)); font-weight: 700; color: var(--blue); line-height: 1.1; }
+    .stat-bubble-lbl { font-size: max(var(--lbl-min), calc(var(--stat) * .069)); line-height: 1.25; color: var(--muted); margin-top: .3em; }
     .stat-b2 { top: var(--mv-st);                        animation: bubbleDriftB 7s ease-in-out -2s infinite alternate; }
     .stat-b3 { top: calc(50% + var(--gap-ss) / 2);       animation: bubbleDriftC 8s ease-in-out -4s infinite alternate; }
 
     .h2-main-bubble {
-      position: absolute; left: var(--mv-h2); top: var(--mv-h2);
+      position: absolute; left: var(--mv-h2); top: calc(50% - var(--h2) / 2);
       width: var(--h2); height: var(--h2); aspect-ratio: 1;
       border-radius: 50%;
       background: radial-gradient(circle at 38% 35%, #eaf4fd 0%, #cce4f5 60%, #b8d9f0 100%);
@@ -357,6 +374,21 @@
     }
     .h2-letter { font-size: calc(var(--h2) * .35); font-weight: 700; color: var(--blue); letter-spacing: -2px; }
     .h2-sub    { font-size: calc(var(--h2) * .153); font-weight: 600; color: var(--blue); align-self: flex-end; margin-bottom: calc(var(--h2) * .06); }
+
+    /* Below 360px the side-by-side triangle would need 282px of the 280px
+       free at 320px, so the cluster stacks: H2 on top, the two stats in a
+       row beneath. Gaps are still derived from the drift distances, so the
+       no-overlap guarantee holds. */
+    @media (max-width: 22.4375rem) {
+      .hero-visual { width: calc(var(--stat) * 2 + var(--gap-ss) + var(--mv-st) * 2); }
+      .hero-bubble-wrap {
+        height: calc(var(--mv-h2) + var(--h2) + var(--gap-hs) + var(--stat) + var(--mv-st));
+      }
+      .h2-main-bubble { top: var(--mv-h2); left: calc(50% - var(--h2) / 2); }
+      .stat-bubble { top: calc(var(--mv-h2) + var(--h2) + var(--gap-hs)); }
+      .stat-b2 { left: var(--mv-st); right: auto; }
+      .stat-b3 { left: auto; right: var(--mv-st); }
+    }
 
     @media (prefers-reduced-motion: reduce) {
       .h2-main-bubble, .stat-bubble { animation: none; }
@@ -378,9 +410,11 @@
     }
     .marquee-set img {
       width: 100%; height: 2.25rem; object-fit: contain; object-position: center;
+      /* Grey in the strip; full colour belongs to the Recognition cards only. */
+      filter: grayscale(1); opacity: .5;
       transition: opacity .2s;
     }
-    .marquee-set img:hover { opacity: .75; }
+    .marquee-set img:hover { opacity: .85; }
 
     /* ── REVEAL UTILITIES ─────────────────────────────────────────────── */
     .word-reveal .word {
@@ -496,6 +530,7 @@
     .tradeoff-header { text-align: left; width: 100%; margin-bottom: 1.75rem; position: relative; z-index: 2; transition: opacity .3s ease; }
 
     .trd-bub, .tradeoff-circles, .tradeoff-brand { display: none; }
+    .trd-stage, .trd-tri, .trd-cap { display: none; }
 
     /* Below 1024px the scroll-driven circle scene is replaced by a plain
        list. Deliberately NO card chrome: the soft blue icon bubble echoes the
@@ -562,23 +597,68 @@
       background: radial-gradient(circle, #dbeafe 0%, #eff6ff 60%, transparent 100%);
     }
     .stg-visual img { position: relative; z-index: 1; width: 100%; height: 100%; object-fit: contain; }
-    .stg-stage {
+
+    /* ── Pillars ──
+       Below 1024px (and under reduced motion) every pillar is a fully
+       expanded card. The desktop block turns the same markup into a
+       scroll-driven stack. */
+    .stg-pillar {
       position: relative; display: block; padding: 1rem;
       background: #fff; border: 1px solid #E5E7EB; border-radius: 14px;
       box-shadow: 0 2px 12px rgba(0,0,0,.06);
     }
-    .stg-inner { display: block; max-width: 100%; }
-    .stg-copy { flex: 1; min-width: 0; }
-    .stg-head-row { display: flex; align-items: flex-start; gap: 1rem; }
+    .stg-ph {
+      display: flex; align-items: flex-start; gap: 1rem;
+      width: 100%; margin: 0; padding: 0;
+      background: none; border: 0; text-align: left;
+      font: inherit; color: inherit; cursor: default;
+    }
+    .stg-ph-text { display: block; min-width: 0; }
     .stg-step-n { width: 3.5rem; height: 3.5rem; flex-shrink: 0; display: flex; align-items: center; justify-content: center; position: relative; }
     .stg-step-n img { width: 100%; height: 100%; object-fit: contain;
       filter: brightness(0) saturate(100%) invert(12%) sepia(80%) saturate(800%) hue-rotate(210deg) brightness(90%); }
-    .stg-item-title { font-size: 1.25rem; font-weight: 700; color: var(--blue); margin-bottom: .5rem; }
-    .stg-item-sub   { font-size: 1rem; font-weight: 500; color: var(--blue); margin-top: 2px; margin-bottom: 1rem; }
+    .stg-item-title { display: block; font-size: 1.25rem; font-weight: 700; color: var(--blue); margin-bottom: .5rem; }
+    .stg-item-sub   { display: block; font-size: 1rem; font-weight: 500; color: var(--blue); margin-top: 2px; margin-bottom: 1rem; }
+    /* Collapsible panel: 0fr -> 1fr animates height with no magic numbers. */
+    .stg-panel { display: grid; grid-template-rows: 1fr; }
+    .stg-panel > div { overflow: hidden; min-height: 0; }
     .stg-copy ul { list-style: none; max-width: 42.5rem; display: flex; flex-direction: column; gap: .625rem; margin: .625rem 0 1.375rem; }
     .stg-copy ul li { font-size: 1rem; color: var(--muted); }
-    .mob-hide { display: none; }
-    .stg-dot-nav, #stgPb { display: none; }
+
+    /* ── REPORT FORMS ──────────────────────────────────────────────────
+       Shared by the modal and the CTA section. Styling of the existing
+       fields is untouched; this only adds the consent row, inline errors,
+       the status line and the spam trap. */
+    .consent-row {
+      display: flex; align-items: flex-start; gap: .625rem;
+      margin: .25rem 0 .5rem; cursor: pointer;
+      /* The whole row is the hit area, so padding lifts it past 44px even
+         though the box itself is 18px. */
+      padding: .375rem 0;
+      font-size: 1rem; line-height: 1.5;
+    }
+    .consent-row input {
+      flex-shrink: 0; width: 1.125rem; height: 1.125rem;
+      margin: .125rem 0 0; accent-color: var(--blue); cursor: pointer;
+    }
+    .field-err {
+      margin: .25rem 0 0; font-size: .8125rem; line-height: 1.4;
+      color: #B91C1C; min-height: 0;
+    }
+    .cta-form-fields .field-err:empty, .report-box .field-err:empty { display: none; }
+    [aria-invalid="true"] { border-color: #B91C1C !important; }
+    .form-status {
+      margin: .625rem 0 0; font-size: .875rem; line-height: 1.5;
+      color: #B91C1C; font-weight: 500;
+    }
+    .form-status:empty { display: none; }
+    /* Spam trap: moved off-screen rather than display:none, so bots that
+       skip hidden fields still fill it in. */
+    .hp-field {
+      position: absolute !important; left: -9999px; top: auto;
+      width: 1px; height: 1px; overflow: hidden;
+    }
+    button[disabled] { opacity: .65; cursor: progress; }
 
     /* ── OUR ADVANTAGE ────────────────────────────────────────────────── */
     .advantage { position: relative; }
@@ -622,6 +702,93 @@
     /* ── TEAM ─────────────────────────────────────────────────────────── */
     /* Phones get a link through to the dedicated team page instead of a
        hover-only carousel, which has no touch equivalent. */
+    /* ── RECOGNITION ───────────────────────────────────────────────────
+       Cards render from the RECOGNITION array in the page script, which is
+       also the marquee's source, so the two can never disagree. */
+    #recognition { scroll-margin-top: var(--nav-h); }
+    .recognition { padding-block: clamp(3.5rem, 8vw, 6rem); background: var(--light); }
+    .rec-head { margin-bottom: 2.5rem; }
+
+    /* 56px between group blocks. The Programmes block carries the same
+       margin inside the collapsible panel, whose overflow:hidden clips it
+       while collapsed, so no phantom gap appears before it opens. */
+    .rec-group + .rec-group, .rec-collapse .rec-group { margin-top: 56px; }
+    .rec-group-title {
+      font-size: 13px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: .08em; color: #64748B; margin: 0 0 16px;
+    }
+    /* Flex rather than grid so a short last row stretches to both edges
+       instead of leaving empty columns. */
+    .rec-grid { display: flex; flex-wrap: wrap; align-items: stretch; gap: 16px; }
+
+    .rec-card {
+      flex: 1 1 100%;
+      position: relative; min-height: 150px; padding: 20px 16px;
+      background: #fff; border: 1px solid #E2E8F0; border-radius: 14px;
+      display: flex; flex-direction: column; align-items: center;
+      text-decoration: none; color: inherit;
+      transition: border-color .2s ease, transform .2s ease;
+    }
+    .rec-label {
+      font-size: 13px; line-height: 1.4; color: #475569; text-align: center;
+      /* Two-line floor keeps every logo on a row at the same height. */
+      min-height: 2.8em;
+      display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+      line-clamp: 2; overflow: hidden;
+    }
+    .rec-logo {
+      flex: 1; display: flex; align-items: center; justify-content: center;
+      width: 100%; min-height: 0; margin-top: 8px;
+    }
+    /* Fixed 160x56 box: a wide wordmark fills the width, a square mark fills
+       the height, and every logo occupies the same footprint. */
+    .rec-logo img {
+      width: 160px; height: 56px; max-width: 100%;
+      object-fit: contain; object-position: center;
+    }
+    /* Fallback when the logo file is not in the repo yet. */
+    .rec-wordmark {
+      font-size: 16px; font-weight: 600; color: #334155;
+      text-align: center; line-height: 1.3;
+    }
+    @media (min-width: 48rem) { .rec-card { flex: 1 1 calc(50% - 8px); } }
+    @media (min-width: 64rem) { .rec-card { flex: 1 1 calc(25% - 12px); } }
+
+    .rec-card:hover, .rec-card:focus-visible { border-color: var(--blue); }
+    a.rec-card:hover, a.rec-card:focus-visible { transform: translateY(-2px); }
+    .rec-card:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; }
+    .rec-ext { position: absolute; top: 10px; right: 10px; width: 12px; height: 12px; color: #94A3B8; }
+
+    /* Programmes: collapsed until the button is pressed. */
+    .rec-collapse { display: grid; grid-template-rows: 0fr; opacity: 0; transition: grid-template-rows .45s ease, opacity .45s ease; }
+    .rec-collapse > div { overflow: hidden; min-height: 0; }
+    .rec-collapse.is-open { grid-template-rows: 1fr; opacity: 1; }
+    .rec-more-wrap { display: flex; justify-content: center; margin-top: 24px; }
+    .rec-more {
+      display: inline-flex; align-items: center; gap: .5rem;
+      min-height: var(--tap); padding: .625rem 1.25rem;
+      font: inherit; font-size: .9375rem; font-weight: 600; color: var(--navy);
+      background: #fff; border: 1px solid #CBD5E1; border-radius: 999px; cursor: pointer;
+      transition: border-color .2s ease, color .2s ease;
+    }
+    .rec-more:hover { border-color: var(--blue); color: var(--blue); }
+    .rec-more:focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
+    .rec-more svg { width: 14px; height: 14px; transition: transform .3s ease; }
+    .rec-more[aria-expanded="true"] svg { transform: rotate(180deg); }
+
+    /* Marquee pauses on hover and on keyboard focus. */
+    .marquee-track:hover, .marquee-track:focus-within { animation-play-state: paused; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .rec-card, .rec-collapse, .rec-more svg { transition: none; }
+      a.rec-card:hover, a.rec-card:focus-visible { transform: none; }
+      /* Static wrapping row instead of a moving strip. */
+      .marquee-outer { overflow: visible; }
+      .marquee-track { animation: none; width: 100%; flex-wrap: wrap; justify-content: center; }
+      .marquee-track .marquee-set[aria-hidden="true"] { display: none; }
+      .marquee-set { grid-auto-flow: row dense; grid-template-columns: repeat(auto-fit, minmax(5rem, 6.875rem)); justify-content: center; }
+    }
+
     /* ── THE TEAM ─────────────────────────────────────────────────────
        Header + scroll-snap carousel, sized to fit one screen on desktop.
        --card-w drives everything: card width, the track width (exactly one
@@ -842,13 +1009,7 @@
     @media (min-width: 48rem) {
       :root { --pad-x: 2rem; }
 
-      .hero-visual {
-        --h2: 200px; --stat: 120px; --mv-h2: 10px; --mv-st: 14px;
-        width: calc(var(--mv-h2) + var(--h2) + var(--gap-hs) + var(--stat) + var(--mv-st));
-      }
-      .hero-bubble-wrap { height: calc(var(--stat) * 2 + var(--gap-ss) + var(--mv-st) * 2); }
-      .h2-main-bubble { top: calc(50% - var(--h2) / 2); }
-      .stat-bubble { display: flex; }
+      .hero-visual { --h2: 220px; --stat: 140px; --mv-h2: 10px; --mv-st: 14px; }
 
       /* ── HERO ── */
       .hero { padding-top: calc(var(--nav-h) + 2.5rem); }
@@ -907,8 +1068,8 @@
        so below this width the plain list above is used instead.
        ════════════════════════════════════════════════════════════════════ */
     @media (min-width: 64rem) {
-      /* ── TRADEOFF: sticky scene with floating circles ── */
-      .tradeoff-track { height: 250vh; }
+      /* ── TRADEOFF: sticky "pick two" triangle ── */
+      .tradeoff-track { height: 300vh; }
       .tradeoff-sticky {
         position: sticky; top: 0; height: 100vh;
         justify-content: flex-start;
@@ -917,15 +1078,45 @@
       .tradeoff-header { margin-bottom: clamp(2.5rem, 8vh, 5rem); }
       .tradeoff-mob-cards { display: none; }
 
-      .tradeoff-circles { display: block; position: absolute; inset: 0; }
+      /* In flow as a flex child, so it fills exactly the space left below
+         the heading — the triangle is laid out in that box, never over it. */
+      .tradeoff-circles {
+        display: block; position: relative; inset: auto;
+        flex: 1 1 auto; width: 100%; min-height: 0;
+      }
+      /* Same content box as .container, so every vertex and caption is
+         inside the shared 1200px column. All positions are set in px by the
+         script from this element's box. */
+      .trd-stage {
+        display: block; position: relative; height: 100%;
+        width: calc(min(var(--maxw), 100%) - 2 * var(--pad-x));
+        margin-inline: auto;
+      }
+      /* Decorative: the polygon points are rewritten each frame from the
+         bubbles' live centres, so the dashes follow the idle float. */
+      .trd-tri {
+        display: block; position: absolute; inset: 0;
+        width: 100%; height: 100%; z-index: 0;
+        pointer-events: none; overflow: visible;
+      }
       .tc {
         position: absolute; width: clamp(7.5rem, 11vw, 10rem); aspect-ratio: 1;
-        top: 50%; left: 50%; translate: -50% -50%;
+        z-index: 1;
         border-radius: 50%; display: flex; flex-direction: column;
         align-items: center; justify-content: center;
         background: radial-gradient(circle at 38% 35%, #eaf4fd 0%, #cce4f5 60%, #b8d9f0 100%);
         box-shadow: 0 12px 48px rgba(59,130,246,.12); will-change: transform;
       }
+      /* Captions sit outward from the triangle; the script pins each one to
+         the outer edge of its bubble and caps the width to the space left. */
+      .trd-cap {
+        display: block; position: absolute; z-index: 1;
+        max-width: 26ch; pointer-events: none;
+        will-change: transform, opacity;
+      }
+      .trd-cap-title { font-size: 18px; font-weight: 600; line-height: 1.3; color: var(--navy); margin-bottom: .25rem; }
+      .trd-cap-body  { font-size: 16px; line-height: 1.6; color: #475569; }
+      .trd-cap-cost { text-align: right; }
       /* Icon is a share of the circle so it scales with it. */
       .tc-icon { width: 45%; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; margin-bottom: .5rem; }
       .tc-icon img { width: 100%; height: 100%; object-fit: contain;
@@ -962,6 +1153,22 @@
       .trd-rb3  { width: 90px;  height: 90px;  top: 88%; right: -10px; animation-duration: 8.5s; animation-delay: 2.2s; }
     }
 
+    /* Reduced motion: drop the sticky scene entirely. The triangle and its
+       captions are shown statically and the brand block follows in normal
+       flow, so the whole story is still readable without any animation. */
+    @media (min-width: 64rem) and (prefers-reduced-motion: reduce) {
+      .tradeoff-track { height: auto; }
+      .tradeoff-sticky { position: relative; height: auto; padding-bottom: 4rem; }
+      .trd-stage { height: 34rem; }
+      .trd-bub { animation: none; }
+      .tradeoff-brand {
+        position: relative; top: auto; left: auto;
+        transform: none; opacity: 1; transition: none;
+        margin: 2.5rem auto 0;
+      }
+      .tradeoff-brand img { margin-inline: auto; }
+    }
+
     /* ════════════════════════════════════════════════════════════════════
        1024px — SMALL LAPTOPS.  Full nav bar and the hero bubble cluster.
        ════════════════════════════════════════════════════════════════════ */
@@ -989,6 +1196,7 @@
         --h2:   clamp(240px, 22vw, 320px);
         --stat: clamp(140px, 12vw, 180px);
         --mv-h2: 12px; --mv-st: 20px;
+        --num-min: 15px; --lbl-min: 10px;   /* desktop type unchanged */
         margin-inline: 0;              /* flush to the container's right edge */
       }
 
@@ -1021,9 +1229,10 @@
       .stg-frame {
         position: sticky; top: 0; height: 100vh;
         display: flex; align-items: center;
-        /* Clears the fixed navbar, then centres the block in what is left,
-           so it never sits under or against the nav. */
-        padding: calc(var(--nav-h) + 2rem) 0 2rem;
+        /* Clears the fixed navbar, and reserves the 160px ::after fade at the
+           bottom, so the block centres in the genuinely readable area and the
+           last pillar never washes out inside the gradient. */
+        padding: calc(var(--nav-h) + 2rem) 0 10rem;
       }
       .stg-frame::after {
         content: ''; display: block; position: absolute;
@@ -1047,67 +1256,96 @@
 
       .stg-visual { max-width: 25rem; margin-inline: 0; }   /* left edge = eyebrow/H2 */
 
-      /* Panels crossfade stacked on top of each other. min-height keeps the
-         column from collapsing now that the panels are out of flow. */
+      /* The column is pinned by the script to the height of its tallest state
+         (three collapsed headers plus the longest open panel), so the heading
+         and the product image never move as pillars open and close. */
       .stg-panels {
-        position: relative; display: block;
-        min-height: 17rem; min-width: 0; z-index: 1;
+        position: relative; display: flex; flex-direction: column;
+        justify-content: flex-start; gap: 1.25rem;
+        min-width: 0; z-index: 1;
       }
-      .stg-stage {
-        position: absolute; inset: 0;
-        display: flex; align-items: center;
-        padding: 0; margin: 0;
-        background: none; border: none; border-radius: 0; box-shadow: none;
-        opacity: 0; pointer-events: none; transition: opacity .45s ease;
+      .stg-pillar {
+        padding: .25rem 0 .25rem 1.25rem;
+        background: none; border: 0; border-radius: 0; box-shadow: none;
+        border-left: 2px solid transparent;
+        transition: opacity .45s ease, transform .45s ease, border-color .45s ease;
       }
-      .stg-stage.active { opacity: 1; pointer-events: auto; }
-      .stg-inner { display: block; width: 100%; }
+      .stg-pillar.is-open { border-left-color: var(--blue); }
+      /* Not yet reached: invisible and inert, but still occupying its space. */
+      .stg-pillar.is-hidden { opacity: 0; transform: translateY(16px); pointer-events: none; }
 
-      /* Compact panel type so the panel reads as a companion to the image
-         rather than out-shouting the H2 above it. */
-      .stg-head-row { gap: 1.25rem; align-items: center; }
+      .stg-ph { align-items: center; gap: 1.25rem; cursor: pointer; }
+      .stg-ph:focus-visible { outline: 2px solid var(--blue); outline-offset: 3px; border-radius: 6px; }
       .stg-step-n {
         width: clamp(3rem, 4.5vw, 4rem); height: clamp(3rem, 4.5vw, 4rem);
-        margin-bottom: 0; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .05s, transform .4s ease .05s;
+        margin-bottom: 0;
+        transition: width .45s ease, height .45s ease;
       }
       .stg-step-n img { filter: none; }
-      .stg-stage.active .stg-step-n { opacity: 1; transform: none; }
       .stg-item-title {
         font-size: clamp(1.5rem, 2.4vw, 2rem); font-weight: 700; color: var(--navy);
-        margin-bottom: .25rem; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .12s, transform .4s ease .12s;
+        margin-bottom: .25rem; transition: font-size .45s ease;
       }
-      .stg-stage.active .stg-item-title { opacity: 1; transform: none; }
       .stg-item-sub {
         font-size: clamp(1rem, 1.4vw, 1.25rem); font-weight: 600; color: var(--blue);
-        margin: 0; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .18s, transform .4s ease .18s;
+        margin: 0;
       }
-      .stg-stage.active .stg-item-sub { opacity: 1; transform: none; }
-      .stg-copy ul {
-        margin: 1.25rem 0 0; opacity: 0; transform: translateY(14px);
-        transition: opacity .4s ease .22s, transform .4s ease .22s;
-      }
-      .stg-stage.active .stg-copy ul { opacity: 1; transform: none; }
-      .stg-copy ul li { font-size: clamp(.9375rem, 1.2vw, 1.0625rem); }
-      .mob-hide { display: inline; }
+      /* Collapsed: icon and title shrink so three headers plus one open panel
+         fit the frame without being clipped by the bottom fade. */
+      .stg-pillar.is-collapsed .stg-step-n { width: 2.5rem; height: 2.5rem; }
+      .stg-pillar.is-collapsed .stg-item-title { font-size: 1.25rem; }
 
-      .stg-dot-nav {
-        display: flex; flex-direction: column; gap: 1.875rem;
-        position: fixed; right: 2rem; top: 50%; transform: translateY(-50%);
-        z-index: 999; opacity: 0; pointer-events: none; transition: opacity .3s;
+      .stg-panel { grid-template-rows: 0fr; transition: grid-template-rows .45s ease; }
+      .stg-pillar.is-open .stg-panel { grid-template-rows: 1fr; }
+      .stg-copy ul {
+        margin: 1.25rem 0 0; opacity: 0; transition: opacity .3s ease;
       }
-      .stg-dot-nav.visible { opacity: 1; pointer-events: auto; }
-      .stg-dot {
-        position: relative; width: .875rem; height: .875rem; border-radius: 50%;
-        background: #D1D5DB; border: none; cursor: pointer; padding: 0;
-        transition: background .3s, transform .3s;
-      }
-      .stg-dot::after { content: ''; position: absolute; inset: -.9375rem; }  /* 44px hit area */
-      .stg-dot.on { background: var(--blue); transform: scale(1.4); }
-      #stgPb { display: block; position: fixed; top: 0; left: 0; height: 3px; background: var(--blue); width: 0; z-index: 1000; transition: width .08s linear; opacity: 0; }
-      #stgPb.visible { opacity: 1; }
+      .stg-pillar.is-open .stg-copy ul { opacity: 1; transition-delay: .15s; }
+      .stg-copy ul li { font-size: clamp(.9375rem, 1.2vw, 1.0625rem); }
+
+      /* Height measuring pass: no transitions, so scrollHeight is read at the
+         final size of each state rather than mid-animation. */
+      .stg-measuring .stg-panel,
+      .stg-measuring .stg-pillar,
+      .stg-measuring .stg-step-n,
+      .stg-measuring .stg-item-title,
+      .stg-measuring .stg-copy ul { transition: none !important; }
+    }
+
+    /* Short desktop viewports (<=900px tall): tighten the stack so three
+       collapsed headers plus the longest open panel finish above the
+       .stg-frame bottom fade instead of washing out inside it. */
+    @media (min-width: 64rem) and (max-height: 56.25rem) {
+      .stg-frame { padding-top: calc(var(--nav-h) + 1rem); }
+      .stg-header { margin-bottom: 1.5rem; }
+      .stg-panels { gap: .75rem; }
+      .stg-item-title { font-size: clamp(1.375rem, 2vw, 1.75rem); }
+      .stg-item-sub { font-size: 1rem; }
+      .stg-step-n { width: clamp(2.75rem, 3.6vw, 3.25rem); height: clamp(2.75rem, 3.6vw, 3.25rem); }
+      .stg-pillar.is-collapsed .stg-step-n { width: 2.25rem; height: 2.25rem; }
+      .stg-pillar.is-collapsed .stg-item-title { font-size: 1.125rem; }
+      .stg-pillar.is-collapsed .stg-item-sub { font-size: .9375rem; }
+      .stg-copy ul { margin-top: .75rem; gap: .5rem; }
+      .stg-copy ul li { font-size: .9375rem; }
+    }
+
+    /* Very short desktop viewports (<=800px tall): at 25rem the square image
+       is the tallest element in the row, so it sets the block height. Trim it
+       until the pillar column is the tallest thing again. */
+    @media (min-width: 64rem) and (max-height: 50rem) {
+      .stg-visual { max-width: 21rem; }
+    }
+
+    /* Reduced motion: no pinning, no scroll scene — the same static, fully
+       expanded stack the small screens get. */
+    @media (min-width: 64rem) and (prefers-reduced-motion: reduce) {
+      .stg-container { height: auto; }
+      .stg-frame { position: relative; height: auto; }
+      .stg-panels { height: auto !important; }
+      .stg-pillar { opacity: 1 !important; transform: none !important; border-left-color: var(--blue); }
+      .stg-panel { grid-template-rows: 1fr !important; }
+      .stg-copy ul { opacity: 1 !important; }
+      .stg-ph { cursor: default; }
     }
 
     /* ════════════════════════════════════════════════════════════════════
@@ -1175,7 +1413,7 @@
     <a href="#stgContainer" class="nav-link">Technology</a>
     <a href="#advantage" class="nav-link">Advantage</a>
     <a href="#team" class="nav-link" id="navTeamLink">Team</a>
-    <a href="#" class="btn" style="font-size:16px;" onclick="document.getElementById('reportModal').classList.add('open');return false;">Request a Report</a>
+    <button type="button" class="btn" style="font-size:16px;" data-open-report>Request a Report</button>
   </div>
   </div>
 </nav>
@@ -1186,11 +1424,11 @@
     <div class="hero-left">
       <h1 class="t-h1">
         <span class="ht1">The future of</span>
-        <span class="ht2 t-accent">green hydrogen</span>
+        <span class="ht2 t-accent"><span class="hl-green">green</span> hydrogen</span>
       </h1>
       <p class="hero-sub t-deck">Developing advanced materials and electrochemistry technology for ultra-efficient electrolysis</p>
       <div class="hero-btn-wrap">
-        <a href="#" class="btn" style="font-size:16px;padding:14px 36px;" onclick="document.getElementById('reportModal').classList.add('open');return false;">Request a Report &nbsp;→</a>
+        <button type="button" class="btn" style="font-size:16px;padding:14px 36px;" data-open-report>Request a Report &nbsp;&rarr;</button>
         <a href="#stgContainer" class="btn-outline" style="font-size:16px;padding:14px 36px;">Explore Technology</a>
       </div>
     </div>
@@ -1218,56 +1456,9 @@
   <div class="trust-bar" id="trustBar">
     <div class="marquee-outer">
       <div class="marquee-track">
-        <div class="marquee-set">
-          <img src="company_logos/1.png"  alt="Partner">
-          <img src="company_logos/2.png"  alt="Partner">
-          <img src="company_logos/3.png"  alt="Partner">
-          <img src="company_logos/4.png"  alt="Partner">
-          <img src="company_logos/5.png"  alt="Partner">
-          <img src="company_logos/6.png"  alt="Partner">
-          <img src="company_logos/7.png"  alt="Partner">
-          <img src="company_logos/8.png"  alt="Partner">
-          <img src="company_logos/9.png"  alt="Partner">
-          <img src="company_logos/10.png" alt="Partner">
-          <img src="company_logos/13.png" alt="Partner">
-          <img src="company_logos/14.png" alt="Partner">
-          <img src="company_logos/15.png" alt="Partner">
-          <img src="company_logos/16.png" alt="Partner">
-          <img src="company_logos/17.png" alt="Partner">
-          <img src="company_logos/18.png" alt="Partner">
-          <img src="company_logos/19.png" alt="Partner">
-          <img src="company_logos/20.png" alt="Partner">
-          <img src="company_logos/21.png" alt="Partner">
-          <img src="company_logos/22.png" alt="Partner">
-          <img src="company_logos/23.png" alt="Partner">
-          <img src="company_logos/24.png" alt="Partner">
-          <img src="company_logos/25.png" alt="Partner">
-        </div>
-        <div class="marquee-set" aria-hidden="true">
-          <img src="company_logos/1.png"  alt="">
-          <img src="company_logos/2.png"  alt="">
-          <img src="company_logos/3.png"  alt="">
-          <img src="company_logos/4.png"  alt="">
-          <img src="company_logos/5.png"  alt="">
-          <img src="company_logos/6.png"  alt="">
-          <img src="company_logos/7.png"  alt="">
-          <img src="company_logos/8.png"  alt="">
-          <img src="company_logos/9.png"  alt="">
-          <img src="company_logos/10.png" alt="">
-          <img src="company_logos/13.png" alt="">
-          <img src="company_logos/14.png" alt="">
-          <img src="company_logos/15.png" alt="">
-          <img src="company_logos/16.png" alt="">
-          <img src="company_logos/17.png" alt="">
-          <img src="company_logos/18.png" alt="">
-          <img src="company_logos/19.png" alt="">
-          <img src="company_logos/20.png" alt="">
-          <img src="company_logos/21.png" alt="">
-          <img src="company_logos/22.png" alt="">
-          <img src="company_logos/23.png" alt="">
-          <img src="company_logos/24.png" alt="">
-          <img src="company_logos/25.png" alt="">
-        </div>
+        <!-- Both sets render from the RECOGNITION array. -->
+        <div class="marquee-set" id="marqueeSetA"></div>
+        <div class="marquee-set" id="marqueeSetB" aria-hidden="true"></div>
       </div>
     </div>
   </div>
@@ -1302,41 +1493,31 @@
     <div class="container">
     <div class="tradeoff-header">
       <p class="t-eyebrow word-reveal">The problem</p>
-      <h2 class="fails-line t-h2 word-reveal"><span class="gh">Green hydrogen production</span> <strong class="t-accent">fails</strong> today because of a tradeoff between…</h2>
+      <h2 class="fails-line t-h2 word-reveal">Today's electrolysers force a <strong class="t-accent">trade-off</strong> between…</h2>
       <span class="sec-rule" aria-hidden="true"></span>
     </div>
-    <!-- Mobile-only tradeoff cards -->
-    <div class="tradeoff-mob-cards">
-      <div class="tmc tmc-cost">
-        <span class="tmc-bubble"><img src="brand_assets/cost.png" alt="Cost" loading="lazy"></span>
-        <div><div class="tmc-title">Cost</div><div class="tmc-body">High catalyst material cost makes large-scale deployment economically unfeasible</div></div>
-      </div>
-      <div class="tmc tmc-eff">
-        <span class="tmc-bubble"><img src="brand_assets/efficiency.png" alt="Efficiency" loading="lazy"></span>
-        <div><div class="tmc-title">Efficiency</div><div class="tmc-body">Excessive cell voltage raises electricity consumption per kg of hydrogen produced</div></div>
-      </div>
-      <div class="tmc tmc-dur">
-        <span class="tmc-bubble"><img src="brand_assets/durability.png" alt="Durability" loading="lazy"></span>
-        <div><div class="tmc-title">Durability</div><div class="tmc-body">Membrane degradation causes frequent replacements and costly system downtime</div></div>
-      </div>
-    </div>
+    <!-- Cards (mobile) and captions (desktop) both render from the
+         TRADEOFF array in the page script, so the copy cannot drift. -->
+    <div class="tradeoff-mob-cards" id="tradeoffMobCards"></div>
     </div>
     <div class="tradeoff-circles" id="tradeoffCircles">
-      <div class="tc tc-cost" id="tcCost">
-        <div class="tc-icon"><img src="brand_assets/cost.png" alt="Cost" loading="lazy"></div>
-        <span class="tc-label">Cost</span>
-      </div>
-      <div class="tc tc-dur" id="tcDur">
-        <div class="tc-icon"><img src="brand_assets/durability.png" alt="Durability" loading="lazy"></div>
-        <span class="tc-label">Durability</span>
-      </div>
-      <div class="tc tc-eff" id="tcEff">
-        <div class="tc-icon"><img src="brand_assets/efficiency.png" alt="Efficiency" loading="lazy"></div>
-        <span class="tc-label">Efficiency</span>
+      <!-- Stage matches the .container content box, so the triangle and
+           captions can never spill outside the shared 1200px column. -->
+      <div class="trd-stage" id="trdStage">
+        <svg class="trd-tri" id="trdTri" aria-hidden="true" focusable="false">
+          <polygon id="trdTriPoly" fill="none" stroke="#93C5FD" stroke-width="1.5"
+                   stroke-dasharray="4 6" opacity=".7"></polygon>
+        </svg>
+        <div class="tc tc-cost" id="tcCost"></div>
+        <div class="tc tc-dur"  id="tcDur"></div>
+        <div class="tc tc-eff"  id="tcEff"></div>
+        <div class="trd-cap trd-cap-eff"  id="capEff"></div>
+        <div class="trd-cap trd-cap-cost" id="capCost"></div>
+        <div class="trd-cap trd-cap-dur"  id="capDur"></div>
       </div>
       <div class="tradeoff-brand" id="tradeoffBrand">
         <img src="brand_assets/logo.png" alt="Electrogenos" loading="lazy">
-        <div class="tradeoff-brand-cap">breaks the tradeoff</div>
+        <div class="tradeoff-brand-cap">breaks the trade-off</div>
       </div>
     </div>
   </div>
@@ -1376,80 +1557,13 @@
       <img src="brand_assets/electrolyzerreal.png" alt="Electrogenos electrolyser">
     </div>
 
-    <div class="stg-panels">
-
-    <!-- Stage 1: Cost -->
-    <div class="stg-stage active" id="stgSt0">
-      <div class="stg-inner">
-        <div class="stg-copy">
-          <div class="stg-head-row">
-            <div class="stg-step-n"><img src="brand_assets/cost.png" alt="Cost"></div>
-            <div>
-              <div class="stg-item-title">Cost</div>
-              <div class="stg-item-sub">Stack cost at 1 A/cm²</div>
-            </div>
-          </div>
-          <ul>
-            <li>5x lower than Western-manufactured stacks</li>
-            <li>Surpasses global best-in-class cost benchmarks</li>
-            <li>No precious or rare materials, no supply chain risk</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stage 2: Efficiency -->
-    <div class="stg-stage" id="stgSt1">
-      <div class="stg-inner">
-        <div class="stg-copy">
-          <div class="stg-head-row">
-            <div class="stg-step-n"><img src="brand_assets/efficiency.png" alt="Efficiency"></div>
-            <div>
-              <div class="stg-item-title">Efficiency</div>
-              <div class="stg-item-sub">+97% HHV at 0.5 A/cm²</div>
-            </div>
-          </div>
-          <ul>
-            <li>High efficiency across ultra-wide operating range</li>
-            <li>Extended operating hours at lower power output</li>
-            <li>Capacity to absorb curtailments and price volatility</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stage 3: Durability -->
-    <div class="stg-stage" id="stgSt2">
-      <div class="stg-inner">
-        <div class="stg-copy">
-          <div class="stg-head-row">
-            <div class="stg-step-n"><img src="brand_assets/durability.png" alt="Durability"></div>
-            <div>
-              <div class="stg-item-title">Durability</div>
-              <div class="stg-item-sub">Bankable lifetime<span class="mob-hide"> under intermittency</span></div>
-            </div>
-          </div>
-          <ul>
-            <li>Built for renewables ramping, shutdowns, cycling</li>
-            <li>&gt;10,000 cycles and thousands of operating hours</li>
-            <li>Resistant to reverse currents and impurity poisoning</li>
-          </ul>
-        </div>
-      </div>
-    </div>
-
-    </div>
+    <!-- Pillars render from the PILLARS array in the page script. -->
+    <div class="stg-panels" id="stgPanels"></div>
     </div>
     </div>
     </div>
   </div>
 </div>
-<div class="stg-dot-nav" id="stgDotNav">
-  <button type="button" class="stg-dot on" onclick="stgJumpTo(0)" title="Cost"></button>
-  <button type="button" class="stg-dot" onclick="stgJumpTo(1)" title="Efficiency"></button>
-  <button type="button" class="stg-dot" onclick="stgJumpTo(2)" title="Durability"></button>
-</div>
-<div id="stgPb"></div>
 
 
 <!-- ══ OUR ADVANTAGE ══ -->
@@ -1573,6 +1687,33 @@
   </div>
 </section>
 
+<!-- ══ RECOGNITION ══ -->
+<section class="recognition" id="recognition">
+  <div class="container">
+    <div class="rec-head reveal">
+      <p class="t-eyebrow word-reveal">Recognition</p>
+      <h2 class="t-h2 word-reveal">Awarded, funded and <strong class="t-accent">accelerated</strong></h2>
+      <span class="sec-rule" aria-hidden="true"></span>
+    </div>
+
+    <!-- Cards render from the RECOGNITION array in the page script. -->
+    <div id="recogGroups"></div>
+
+    <div class="rec-collapse" id="recogCollapse"><div></div></div>
+
+    <div class="rec-more-wrap" id="recogMoreWrap" hidden>
+      <button type="button" class="rec-more" id="recogMore"
+              aria-expanded="false" aria-controls="recogCollapse">
+        <span class="rec-more-text">See all programmes</span>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">
+          <polyline points="6 9 12 15 18 9"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</section>
+
 <!-- ══ CTA ══ -->
 <section class="cta" id="contact">
   <div class="container cta-layout">
@@ -1587,22 +1728,40 @@
 
     <!-- Right: Request a Report form -->
     <div class="cta-form reveal d1 cta-col">
-      <form class="cta-form-fields" id="ctaReportForm" onsubmit="submitReportForm(event);">
+      <form class="cta-form-fields" id="ctaReportForm" novalidate>
+        <input type="hidden" name="source" value="section">
+        <div class="hp-field" aria-hidden="true">
+          <label for="cf-website">Leave this field empty</label>
+          <input type="text" id="cf-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
         <div class="cta-field">
           <label for="cf-name">Name</label>
-          <input type="text" id="cf-name" placeholder="Your full name" required>
+          <input type="text" id="cf-name" name="name" placeholder="Your full name"
+                 autocomplete="name" required aria-describedby="cf-name-err">
+          <p class="field-err" id="cf-name-err"></p>
         </div>
         <div class="cta-field">
           <label for="cf-email">Email</label>
-          <input type="email" id="cf-email" placeholder="you@company.com" required>
+          <input type="email" id="cf-email" name="email" placeholder="you@company.com"
+                 autocomplete="email" required aria-describedby="cf-email-err">
+          <p class="field-err" id="cf-email-err"></p>
         </div>
         <div class="cta-field">
           <label for="cf-org">Organisation</label>
-          <input type="text" id="cf-org" placeholder="Company or institution" required>
+          <input type="text" id="cf-org" name="organisation" placeholder="Company or institution"
+                 autocomplete="organization" aria-describedby="cf-org-err">
+          <p class="field-err" id="cf-org-err"></p>
         </div>
+        <label class="consent-row" for="cf-consent">
+          <input type="checkbox" id="cf-consent" name="consent" value="yes" required
+                 aria-describedby="cf-consent-err">
+          <span>I agree to Electrogenos storing my details to send me the report and related updates.</span>
+        </label>
+        <p class="field-err" id="cf-consent-err"></p>
         <div class="cta-form-submit" style="display:flex;gap:12px;align-items:center;">
-          <button type="submit" class="btn" style="font-size:14px;padding:12px 28px;">Request a Report &nbsp;→</button>
+          <button type="submit" class="btn" style="font-size:14px;padding:12px 28px;">Request a Report &nbsp;&rarr;</button>
         </div>
+        <p class="form-status" role="status" aria-live="polite"></p>
       </form>
       <div id="ctaFormSuccess" style="display:none;padding:20px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;color:#166534;font-size:16px;font-weight:600;margin-top:12px;">✓ Thanks! We'll send the report to your inbox shortly</div>
     </div>
@@ -1862,123 +2021,313 @@
     setActive(0);   // Green Steel open on load; no mouseleave handler, so the last hovered item stays
   })();
 
-  // ── TRADEOFF CIRCLES ──
-  (function() {
-    const track = document.getElementById('tradeoffTrack');
-    const brand = document.getElementById('tradeoffBrand');
-    if (!track) return;
-    /* Radius is measured from the rendered circle (its size is now fluid),
-       and the play area uses documentElement.clientWidth — innerWidth
-       includes the scrollbar, which pushed circles past the right edge. */
-    let CR = 80, DIAM = 160;
-    let AW = 0, AH = 0, CX = 0, CY = 0, inited = false;
-    const circles = [
-      { el: document.getElementById('tcCost'), x:0, y:0, vx:  2.6, vy:  1.8 },
-      { el: document.getElementById('tcDur'),  x:0, y:0, vx: -2.2, vy:  2.4 },
-      { el: document.getElementById('tcEff'),  x:0, y:0, vx:  1.8, vy: -2.8 },
+  // ── THE PROBLEM: "pick two" trade-off triangle ──
+  (function () {
+    /* Single source of truth for this section. The mobile cards, the desktop
+       bubble labels and the desktop captions are all rendered from it, so the
+       copy can never drift between layouts. */
+    const TRADEOFF = [
+      { id: 'cost', title: 'Cost', icon: 'brand_assets/cost.png',
+        body: 'High catalyst material cost makes large-scale deployment economically unfeasible.' },
+      { id: 'eff', title: 'Efficiency', icon: 'brand_assets/efficiency.png',
+        body: 'Excessive cell voltage raises electricity consumption per kg of hydrogen produced.' },
+      { id: 'dur', title: 'Durability', icon: 'brand_assets/durability.png',
+        body: 'Membrane degradation causes frequent replacements and costly system downtime.' },
     ];
-    let scrollRaw = 0, lastTs = null, rippleFired = false;
-    function easeIn3(t) { return t*t*t; }
-    window.addEventListener('scroll', function() {
-      if (!MQ_DESKTOP.matches) {
-        /* Drop any inline opacity left over from the desktop scene, so a
-           resize down can never leave the heading faded out. */
-        const h = document.querySelector('.tradeoff-header');
-        if (h && h.style.opacity) h.style.opacity = '';
-        return;
-      }
-      const rect = track.getBoundingClientRect();
-      const range = track.offsetHeight - window.innerHeight;
-      if (rect.top > window.innerHeight || rect.bottom < 0) return;
-      scrollRaw = Math.max(0, Math.min(1, -rect.top / range));
-      if (scrollRaw > 0.45) brand.classList.add('shown'); else brand.classList.remove('shown');
-      const header = document.querySelector('.tradeoff-header');
-      const hOp = scrollRaw > 0.20 ? Math.max(0, 1 - (scrollRaw - 0.20) / 0.20) : 1;
-      if (header) header.style.opacity = hOp.toFixed(3);
-      if (scrollRaw > 0.82 && !rippleFired) { rippleFired = true; brand.classList.add('locked'); setTimeout(() => brand.classList.remove('locked'), 1400); }
-      if (scrollRaw < 0.65) rippleFired = false;
-    }, { passive: true });
-    function collide(a, b) {
-      const dx = b.x-a.x, dy = b.y-a.y, d = Math.sqrt(dx*dx+dy*dy);
-      if (d >= DIAM || d < 1) return;
-      const nx = dx/d, ny = dy/d, overlap = (DIAM-d)*0.5;
-      a.x -= nx*overlap; a.y -= ny*overlap; b.x += nx*overlap; b.y += ny*overlap;
-      const dv = (a.vx-b.vx)*nx+(a.vy-b.vy)*ny;
-      if (dv <= 0) return;
-      const imp = dv*0.92;
-      a.vx -= imp*nx; a.vy -= imp*ny; b.vx += imp*nx; b.vy += imp*ny;
-    }
-    function frame(ts) {
-      const dt = lastTs ? Math.min((ts-lastTs)/16.67,2.5) : 1; lastTs = ts;
-      if (!inited) {
-        const first = circles[0].el;
-        CR = first ? first.offsetWidth / 2 : 80; DIAM = CR * 2;
-        AW = document.documentElement.clientWidth; AH = window.innerHeight;
-        CX = AW/2; CY = AH*0.55;
-        circles[0].x=AW*0.20; circles[0].y=AH*0.60;
-        circles[1].x=AW*0.80; circles[1].y=AH*0.65;
-        circles[2].x=AW*0.50; circles[2].y=AH*0.80;
-        inited = true;
-      }
-      const flyP = easeIn3(Math.max(0, Math.min(1, (scrollRaw-0.20)/0.20)));
-      if (flyP === 0) {
-        circles.forEach(c => {
-          c.x += c.vx*dt; c.y += c.vy*dt;
-          const TOP_Y = AH*0.50+CR;
-          if (c.x < CR)      { c.x=CR;      c.vx= Math.abs(c.vx)*0.95; }
-          if (c.x > AW-CR)   { c.x=AW-CR;   c.vx=-Math.abs(c.vx)*0.95; }
-          if (c.y < TOP_Y)   { c.y=TOP_Y;   c.vy= Math.abs(c.vy)*0.95; }
-          if (c.y > AH-CR)   { c.y=AH-CR;   c.vy=-Math.abs(c.vy)*0.95; }
-          c.vx += (CX-c.x)*0.00012*dt; c.vy += (CY-c.y)*0.00012*dt;
-          const spd = Math.sqrt(c.vx*c.vx+c.vy*c.vy);
-          if (spd > 3.2) { c.vx*=3.2/spd; c.vy*=3.2/spd; }
-          if (spd < 1.6) { c.vx*=1.6/spd; c.vy*=1.6/spd; }
-        });
-        collide(circles[0],circles[1]); collide(circles[1],circles[2]); collide(circles[0],circles[2]);
-      }
-      circles.forEach((c, i) => {
-        if (!c.el) return;
-        const tx = c.x-CX, ty = c.y-CY;
-        const compress = Math.min(1, flyP/0.25);
-        const burst    = Math.max(0, (flyP-0.25)/0.75);
-        const scale = flyP < 0.25 ? 1-compress*0.12 : (1-0.12)+burst*1.4;
-        const op = flyP < 0.25 ? 1 : Math.max(0, 1-burst*1.4);
-        c.el.style.transform = `translate(${tx.toFixed(2)}px,${ty.toFixed(2)}px) scale(${scale.toFixed(3)})`;
-        c.el.style.opacity = op.toFixed(3);
-      });
-      rafId = requestAnimationFrame(frame);
-    }
-    /* Run the loop only while the desktop layout is active, and recompute the
-       play area whenever the viewport changes size. */
-    let rafId = null;
-    function start() { if (rafId === null) { lastTs = null; rafId = requestAnimationFrame(frame); } }
-    function stop() {
-      if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; }
-      circles.forEach(c => { if (c.el) { c.el.style.transform = ''; c.el.style.opacity = ''; } });
-      inited = false;
-    }
-    window.addEventListener('resize', () => { inited = false; }, { passive: true });
-    MQ_DESKTOP.addEventListener('change', e => { e.matches ? start() : stop(); });
-    if (MQ_DESKTOP.matches) start();
-  })();
 
-  /* ─── SMOOTH INTERNAL LINKS ─── */
-  document.querySelectorAll('a[href^="#"]').forEach(a => {
-    a.addEventListener('click', e => {
-      const href = a.getAttribute('href');
-      // href="#" is a JS trigger, and the Team link becomes team.html on
-      // small screens — querySelector('#') throws, so bail on both.
-      if (!href || href === '#' || href.charAt(0) !== '#') return;
-      const target = document.querySelector(href);
-      if (target) {
-        e.preventDefault();
-        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    /* Scroll-timeline boundaries as fractions of scrollRaw (0-1 through
+       #tradeoffTrack). The track is 300vh, so the range is 200vh and the
+       0.40 hold is ~80vh — nearly a full screen of reading time before
+       anything starts to move. Tune timing here only. */
+    const PHASE = {
+      hold: 0.40,            // captions start fading
+      capsOut: 0.50,         // captions gone; convergence begins
+      converge: 0.68,        // bubbles meet; burst begins
+      burst: 0.78,           // burst complete
+      brand: 0.74,           // brand block appears
+      ripple: 0.90,          // "locked" ripple fires
+      rippleReset: 0.80,     // ripple re-arms below this
+      headFadeStart: 0.66,
+      headFadeEnd: 0.76,
+    };
+
+    const track  = document.getElementById('tradeoffTrack');
+    const brand  = document.getElementById('tradeoffBrand');
+    const stage  = document.getElementById('trdStage');
+    const tri    = document.getElementById('trdTri');
+    const poly   = document.getElementById('trdTriPoly');
+    const cards  = document.getElementById('tradeoffMobCards');
+    const header = document.querySelector('.tradeoff-header');
+    const sticky = document.querySelector('.tradeoff-sticky');
+    const circles = document.getElementById('tradeoffCircles');
+    const nav = document.querySelector('nav, .nav');
+    if (!track || !stage) return;
+
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    const byId = id => TRADEOFF.find(d => d.id === id);
+
+    // ── Both layouts render from the one array ──
+    if (cards) {
+      cards.innerHTML = TRADEOFF.map(d =>
+        '<div class="tmc tmc-' + d.id + '">' +
+          '<span class="tmc-bubble"><img src="' + esc(d.icon) + '" alt="' + esc(d.title) + '" loading="lazy"></span>' +
+          '<div><div class="tmc-title">' + esc(d.title) + '</div>' +
+          '<div class="tmc-body">' + esc(d.body) + '</div></div>' +
+        '</div>').join('');
+    }
+
+    /* Vertex fractions of the stage box: Efficiency on top, Cost bottom-left,
+       Durability bottom-right. Each bubble drifts on its own slow cycle. */
+    const NODES = [
+      { id: 'eff',  el: document.getElementById('tcEff'),  cap: document.getElementById('capEff'),
+        fx: 0.50, fy: 0.25, side: 'right', per: 7000, ph: 0 },
+      { id: 'cost', el: document.getElementById('tcCost'), cap: document.getElementById('capCost'),
+        fx: 0.30, fy: 0.75, side: 'left',  per: 8000, ph: 2300 },
+      { id: 'dur',  el: document.getElementById('tcDur'),  cap: document.getElementById('capDur'),
+        fx: 0.70, fy: 0.75, side: 'right', per: 6000, ph: 4100 },
+    ];
+
+    NODES.forEach(n => {
+      const d = byId(n.id);
+      if (n.el) {
+        n.el.innerHTML = '<div class="tc-icon"><img src="' + esc(d.icon) + '" alt="" loading="lazy"></div>' +
+                         '<span class="tc-label">' + esc(d.title) + '</span>';
+      }
+      if (n.cap) {
+        n.cap.innerHTML = '<div class="trd-cap-title">' + esc(d.title) + '</div>' +
+                          '<div class="trd-cap-body">' + esc(d.body) + '</div>';
       }
     });
-  });
 
-  // The team grid renders at every width now, so the nav "Team" link stays an
-  // on-page anchor (it used to swap to team.html below 768px).
+    const CAP_GAP = 20;
+    const reduce  = window.matchMedia('(prefers-reduced-motion: reduce)');
+    let SW = 0, SH = 0, R = 60, CX = 0, CY = 0, laidOut = false;
+
+    const DIA_MIN = 120;   // 7.5rem floor for the bubbles
+    const VS_MIN  = 150;   // shrink the vertical spread this far before the bubbles
+
+    /* Place the caption beside its bubble and report the height it renders at.
+       Width is capped to the room left so it can never leave the container. */
+    function placeCap(n, R) {
+      if (!n.cap) return 0;
+      const avail = n.side === 'right' ? SW - (n.x + R + CAP_GAP) : n.x - R - CAP_GAP;
+      n.cap.style.maxWidth = '';
+      const natural = n.cap.offsetWidth;
+      n.cap.style.maxWidth = Math.max(0, Math.min(natural, avail)) + 'px';
+      if (n.side === 'right') {
+        n.cap.style.left  = (n.x + R + CAP_GAP) + 'px';
+        n.cap.style.right = '';
+      } else {
+        n.cap.style.right = (SW - (n.x - R - CAP_GAP)) + 'px';
+        n.cap.style.left  = '';
+      }
+      return n.cap.offsetHeight;
+    }
+
+    function setDia(d) {
+      NODES.forEach(n => { if (n.el) n.el.style.width = d ? d + 'px' : ''; });
+    }
+
+    function layout() {
+      const sr = stage.getBoundingClientRect();
+      SW = sr.width; SH = sr.height;
+      if (!SW || !SH) return false;
+      tri.setAttribute('viewBox', '0 0 ' + SW + ' ' + SH);
+      NODES.forEach(n => { n.x = n.fx * SW; });
+
+      /* Measured against .tradeoff-sticky rather than the live viewport, so the
+         result is identical whether or not the scene is pinned yet. */
+      const stickyR = sticky.getBoundingClientRect();
+      const vh      = stickyR.height;
+      const toStage = y => y - (sr.top - stickyR.top);      // sticky-local -> stage-local
+      const clamp   = (lo, v, hi) => Math.max(lo, Math.min(v, hi));
+
+      /* Brand block sits at the optical centre of the area below the fixed
+         navbar, and the bubbles converge on exactly that point so the burst
+         opens onto the logo. */
+      const navH    = nav ? nav.getBoundingClientRect().height : 0;
+      const brandCY = navH + (vh - navH) * 0.46;
+      CX = SW / 2;
+      CY = toStage(brandCY);
+
+      if (reduce.matches) {                                    // reduced motion: simple + safe
+        /* The brand block is in normal flow here, so it must keep its own
+           top: auto — never the absolute offset used by the scroll scene. */
+        if (brand) brand.style.top = '';
+        setDia(0);
+        R = NODES[0].el ? NODES[0].el.offsetWidth / 2 : 60;
+        NODES.forEach(n => {
+          n.y = n.fy * SH;
+          if (n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
+          placeCap(n, R);
+          if (n.cap) n.cap.style.top = n.y + 'px';
+        });
+        laidOut = true;
+        return true;
+      }
+
+      // Band the triangle must live in: below the heading, above the fold.
+      const hdrBottom = header.getBoundingClientRect().bottom - stickyR.top;
+      const gapTop    = clamp(40, vh * 0.06, 72);
+      const gapBot    = clamp(56, vh * 0.08, 96);
+      if (brand) brand.style.top = (brandCY - (circles.getBoundingClientRect().top - stickyR.top)) + 'px';
+      const bandTop   = hdrBottom + gapTop;
+      const bandBot   = vh - gapBot;
+      const B         = bandBot - bandTop;
+
+      /* Fit the triangle to the band from the real rendered heights: shrink the
+         vertical spread first, and only then the bubbles, so a caption is never
+         clipped on a short screen. */
+      setDia(0);
+      let dia = NODES[0].el ? NODES[0].el.offsetWidth : 140;
+      let vs = 0, topOver = 0, botOver = 0;
+      for (let i = 0; i < 12; i++) {
+        setDia(dia);
+        R = dia / 2;
+        const hEff  = placeCap(NODES[0], R);
+        const hCost = placeCap(NODES[1], R);
+        const hDur  = placeCap(NODES[2], R);
+        topOver = Math.max(R, hEff / 2);
+        botOver = Math.max(R, hCost / 2, hDur / 2);
+        vs = Math.min(clamp(200, B * 0.5, 320), B - topOver - botOver);
+        if (vs >= VS_MIN || dia <= DIA_MIN) break;
+        dia = Math.max(DIA_MIN, dia - 8);
+      }
+      vs = Math.max(0, vs);
+
+      // Centre the whole block in the band, so both gaps stay at or above
+      // their minimums instead of the triangle hugging the bottom.
+      const H      = topOver + vs + botOver;
+      const effY   = bandTop + Math.max(0, (B - H) / 2) + topOver;
+      const baseY  = effY + vs;
+
+      NODES.forEach(n => {
+        n.y = toStage(n.id === 'eff' ? effY : baseY);
+        if (n.el) { n.el.style.left = n.x + 'px'; n.el.style.top = n.y + 'px'; }
+        if (n.cap) n.cap.style.top = n.y + 'px';
+      });
+      laidOut = true;
+      return true;
+    }
+
+    const clamp01 = v => Math.max(0, Math.min(1, v));
+    const easeIn3 = t => t * t * t;
+
+    /* One frame of the scene for a given scroll progress and clock. Every
+       value is a pure function of scrollRaw, so scrolling back up reverses
+       each phase exactly. */
+    function render(scrollRaw, ts) {
+      if (!laidOut && !layout()) return;
+      const capP      = clamp01((scrollRaw - PHASE.hold)     / (PHASE.capsOut  - PHASE.hold));
+      const convergeP = clamp01((scrollRaw - PHASE.capsOut)  / (PHASE.converge - PHASE.capsOut));
+      const burstP    = clamp01((scrollRaw - PHASE.converge) / (PHASE.burst    - PHASE.converge));
+      const conv      = easeIn3(convergeP);
+      const floatK    = 1 - convergeP;                        // float stops as they meet
+      const pts = [];
+
+      NODES.forEach(n => {
+        const th = ((ts + n.ph) % n.per) / n.per * Math.PI * 2;
+        const fx = Math.sin(th) * 4.0 * floatK;
+        const fy = Math.cos(th * 0.75) * 6.8 * floatK;
+        const px = n.x + fx + (CX - n.x) * conv;
+        const py = n.y + fy + (CY - n.y) * conv;
+        pts.push(px.toFixed(1) + ',' + py.toFixed(1));
+        if (n.el) {
+          const scale = burstP > 0 ? 0.88 + burstP * 1.4 : 1 - convergeP * 0.12;
+          const op    = burstP > 0 ? Math.max(0, 1 - burstP * 1.4) : 1;
+          n.el.style.transform = 'translate(-50%,-50%) translate(' +
+            (px - n.x).toFixed(2) + 'px,' + (py - n.y).toFixed(2) + 'px) scale(' + scale.toFixed(3) + ')';
+          n.el.style.opacity = op.toFixed(3);
+        }
+        if (n.cap) {
+          const dir = n.side === 'right' ? -1 : 1;   // drift toward its bubble
+          n.cap.style.opacity   = (1 - capP).toFixed(3);
+          n.cap.style.transform = 'translateY(-50%) translateX(' + (dir * capP * 16).toFixed(1) + 'px)';
+        }
+      });
+
+      poly.setAttribute('points', pts.join(' '));
+      poly.setAttribute('opacity', (0.7 * (1 - convergeP)).toFixed(3));
+    }
+
+    /* Static, animation-free version of the same opening state. */
+    function renderStatic() {
+      if (!layout()) return;
+      const pts = [];
+      NODES.forEach(n => {
+        pts.push(n.x.toFixed(1) + ',' + n.y.toFixed(1));
+        if (n.el)  { n.el.style.transform = 'translate(-50%,-50%)'; n.el.style.opacity = '1'; }
+        if (n.cap) { n.cap.style.opacity = '1'; n.cap.style.transform = 'translateY(-50%)'; }
+      });
+      poly.setAttribute('points', pts.join(' '));
+      poly.setAttribute('opacity', '.7');
+    }
+
+    // ── Scroll timeline ──
+    let scrollRaw = 0, rippleFired = false;
+    function onScroll() {
+      if (!MQ_DESKTOP.matches || reduce.matches) {
+        /* Drop any inline opacity left over from the desktop scene, so a
+           resize down can never leave the heading faded out. */
+        if (header && header.style.opacity) header.style.opacity = '';
+        return;
+      }
+      const rect  = track.getBoundingClientRect();
+      const range = track.offsetHeight - window.innerHeight;
+      if (rect.top > window.innerHeight || rect.bottom < 0 || range <= 0) return;
+      scrollRaw = clamp01(-rect.top / range);
+      if (scrollRaw > PHASE.brand) brand.classList.add('shown'); else brand.classList.remove('shown');
+      /* Heading holds through the reading and caption phases, then clears the
+         screen so the brand reveal owns it. */
+      if (header) header.style.opacity =
+        (1 - clamp01((scrollRaw - PHASE.headFadeStart) / (PHASE.headFadeEnd - PHASE.headFadeStart))).toFixed(3);
+      if (scrollRaw > PHASE.ripple && !rippleFired) {
+        rippleFired = true; brand.classList.add('locked');
+        setTimeout(() => brand.classList.remove('locked'), 1400);
+      }
+      if (scrollRaw < PHASE.rippleReset) rippleFired = false;
+    }
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // ── rAF, gated on desktop + visibility so it costs nothing elsewhere ──
+    let rafId = null, inView = false;
+    function frame(ts) { render(scrollRaw, ts); rafId = requestAnimationFrame(frame); }
+    function start() {
+      if (rafId !== null || reduce.matches || !MQ_DESKTOP.matches || !inView) return;
+      layout(); rafId = requestAnimationFrame(frame);
+    }
+    function stop() { if (rafId !== null) { cancelAnimationFrame(rafId); rafId = null; } }
+    function clearInline() {
+      NODES.forEach(n => {
+        if (n.el)  n.el.style.cssText = '';
+        if (n.cap) n.cap.style.cssText = '';
+      });
+      if (header) header.style.opacity = '';
+      laidOut = false;
+    }
+
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver(es => {
+        inView = es[0].isIntersecting;
+        inView ? start() : stop();
+      }, { rootMargin: '200px 0px' }).observe(track);
+    } else { inView = true; }
+
+    function applyMode() {
+      stop();
+      if (!MQ_DESKTOP.matches) { clearInline(); return; }
+      if (reduce.matches)      { clearInline(); renderStatic(); return; }
+      onScroll(); start();
+    }
+    window.addEventListener('resize', () => {
+      laidOut = false;
+      if (reduce.matches && MQ_DESKTOP.matches) renderStatic();
+    }, { passive: true });
+    MQ_DESKTOP.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    applyMode();
+  })();
 
   // ── WATERFALL SVG CHART ──
   (function() {
@@ -1996,6 +2345,144 @@
       }
     }, { threshold: 0.3 });
     obs.observe(chart);
+  })();
+
+  // ── RECOGNITION (cards + hero marquee, one source) ──
+  (function () {
+    /* Single source of truth. published:false items are skipped entirely —
+       they are never written to the DOM in any form. Publishing is a manual
+       flag change, never automatic. */
+    const RECOGNITION = [
+      { group: 'Awards', label: 'Winner, Startup Pitch Competition 2026', name: 'Make it in the Emirates',
+        logo: 'recognition/miite.jpg',
+        url: 'https://mena.entrepreneur.com/business-news/startup-pitch-competition-names-winners-at-make-it-in-the-emirates-2026', published: true },
+      { group: 'Awards', label: 'Winner, Sustainable Solutions 2025', name: 'Eureka! GCC',
+        logo: 'recognition/eureka.png',
+        url: 'https://www.khaleejtimes.com/kt-network/nahyan-bin-mubarak-crowns-timble-ai-as-grand-winner-of-4th-eureka-gcc-in-dubai-2', published: true },
+      { group: 'Awards', label: 'Winner, Eco Innovator 2024', name: 'SeedLegals Startup Awards',
+        logo: 'recognition/seedlegals.svg',
+        url: 'https://seedlegals.com/resources/startup-awards-winners-2024/', published: true },
+      { group: 'Awards', label: 'Winner, South Central 2023', name: 'KPMG UK Tech Innovator',
+        logo: 'recognition/kpmg.png', grey: 'company_logos/20.png',
+        url: 'https://thebusinessmagazine.co.uk/corporate-finance/abingdon-tech-and-manufacturing-start-up-electrogenos-crowned-tech-innovator/', published: true },
+
+      { group: 'Funded by', label: 'Transformative Technologies 2023', name: 'Innovate UK',
+        logo: 'recognition/innovateuk.png', grey: 'company_logos/17.png', url: '', published: true },
+      { group: 'Funded by', label: 'Energy Catalyst Round 11, 2026', name: 'Energy Catalyst',
+        logo: 'recognition/energycatalyst.png',
+        url: 'https://energycatalyst.ukri.org/news/energy-catalyst-round-11-awards-funding-to-high-impact-clean-energy-innovations/', published: true },
+      { group: 'Funded by', label: 'Industrial Collaboration Programme', name: 'Henry Royce Institute',
+        logo: 'recognition/henryroyce.png', grey: 'company_logos/7.png', url: '', published: true },
+
+      { group: 'Programmes', label: 'ClimateTech Cohort 15, 2024', name: 'Hub71',
+        logo: 'recognition/hub71.svg', grey: 'company_logos/6.png',
+        url: 'https://www.hub71.com/latest-news/press-release/hub71-welcomes-21-startups-in-15th-cohort-to-abu-dhabi-that-have-raised-over-usd-130-million-in-funding', published: true },
+      { group: 'Programmes', label: 'Entrepreneurs Fund, 2024', name: 'Repsol Foundation',
+        logo: 'recognition/repsol-foundation.png', grey: 'company_logos/2.png',
+        url: 'https://www.fundacionrepsol.com/en/noticias/fundacion-repsol-incorpora-7-nuevas-startups-fondo-de-emprendedores/', published: true },
+      { group: 'Programmes', label: 'Hydrogen Challenge, 2024', name: 'All4Zero',
+        logo: 'recognition/all4zero.jpg',
+        url: 'https://all4zero-hub.com/wp-content/uploads/2024/06/20062024_NdP_All4Zero-All4Zero-presents-12-technological-solutions.pdf', published: true },
+      { group: 'Programmes', label: 'Ramp-Up Season 4 finalist, 2026', name: 'EGA',
+        logo: 'recognition/egarampup.webp', grey: 'company_logos/10.png', url: '', published: true },
+      { group: 'Programmes', label: 'Accelerator, 2023', name: 'H2UB',
+        logo: 'recognition/h2ub.jpg', grey: 'company_logos/13.png', url: '', published: true },
+      { group: 'Programmes', label: 'ScaleForClimate, 2025', name: 'NYSERDA',
+        logo: 'recognition/nyserda.png', grey: 'company_logos/16.png', url: '', published: true },
+      { group: 'Programmes', label: 'TechX accelerator, 2023', name: 'Net Zero Technology Centre',
+        logo: 'recognition/netzerotechnologycentre.jpg', url: '', published: true },
+    ];
+
+    const GROUP_ORDER = ['Awards', 'Pilot partners', 'Funded by', 'Backed by', 'Programmes'];
+    const COLLAPSED = 'Programmes';
+
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    const EXT_ICON = '<svg class="rec-ext" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+      'stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" focusable="false">' +
+      '<path d="M7 17 17 7M9 7h8v8"/></svg>';
+
+    const live = RECOGNITION.filter(r => r.published === true);
+
+    /* A logo that 404s swaps itself for a wordmark, so a card never shows a
+       broken image and new files need no code change. */
+    function logoHtml(r) {
+      return '<span class="rec-logo"><img src="' + esc(r.logo) + '" alt="' + esc(r.name) + '"' +
+             ' width="160" height="56" loading="lazy"' +
+             ' onerror="this.parentNode.innerHTML=\'<span class=&quot;rec-wordmark&quot;>' +
+             esc(r.name).replace(/'/g, '&#39;') + '</span>\'"></span>';
+    }
+
+    function cardHtml(r) {
+      const inner = '<span class="rec-label">' + esc(r.label) + '</span>' + logoHtml(r);
+      if (r.url) {
+        return '<a class="rec-card" href="' + esc(r.url) + '" target="_blank" rel="noopener"' +
+               ' aria-label="' + esc(r.label + ', ' + r.name) + ' (opens in a new tab)">' +
+               EXT_ICON + inner + '</a>';
+      }
+      return '<div class="rec-card">' + inner + '</div>';
+    }
+
+    function gridHtml(items) {
+      return '<div class="rec-grid">' + items.map(cardHtml).join('') + '</div>';
+    }
+
+    const host = document.getElementById('recogGroups');
+    const more = document.getElementById('recogMore');
+    const wrap = document.getElementById('recogMoreWrap');
+    if (!host) return;
+
+    let html = '', collapsedHtml = '';
+    GROUP_ORDER.forEach(g => {
+      const items = live.filter(r => r.group === g);
+      if (!items.length) return;                       // no empty headings
+      const block = '<h3 class="rec-group-title">' + esc(g) + '</h3>' + gridHtml(items);
+      if (g === COLLAPSED) collapsedHtml = '<div class="rec-group">' + block + '</div>';
+      else html += '<div class="rec-group">' + block + '</div>';
+    });
+    host.innerHTML = html;
+
+    const panel = document.getElementById('recogCollapse');
+    if (collapsedHtml && panel) {
+      panel.querySelector('div').innerHTML = collapsedHtml;
+      if (wrap) wrap.hidden = false;
+      if (more) {
+        more.addEventListener('click', () => {
+          const open = panel.classList.toggle('is-open');
+          more.setAttribute('aria-expanded', String(open));
+          more.querySelector('.rec-more-text').textContent = open ? 'Show less' : 'See all programmes';
+        });
+      }
+    }
+
+    /* ── Hero marquee, from the same list ──
+       Logos that are not in the repo yet are skipped rather than shown as a
+       wordmark, so the strip stays purely visual. */
+    const MARQUEE_ORDER = ['Make it in the Emirates', 'Eureka! GCC', 'SeedLegals Startup Awards',
+      'KPMG UK Tech Innovator', 'Innovate UK', 'Energy Catalyst', 'Henry Royce Institute', 'Hub71',
+      'Repsol Foundation', 'All4Zero', 'EGA', 'H2UB', 'NYSERDA', 'Net Zero Technology Centre'];
+
+    const setA = document.getElementById('marqueeSetA');
+    const setB = document.getElementById('marqueeSetB');
+    if (setA && setB) {
+      const ordered = MARQUEE_ORDER
+        .map(n => live.find(r => r.name === n))
+        .filter(Boolean);
+      Promise.all(ordered.map(r => new Promise(res => {
+        const img = new Image();
+        img.onload = () => res(r);
+        img.onerror = () => res(null);
+        img.src = r.grey || r.logo;
+      }))).then(found => {
+        const ok = found.filter(Boolean);
+        if (!ok.length) return;
+        setA.innerHTML = ok.map(r =>
+          '<img src="' + esc(r.grey || r.logo) + '" alt="' + esc(r.name) + '" loading="lazy">').join('');
+        setB.innerHTML = ok.map(r =>
+          '<img src="' + esc(r.grey || r.logo) + '" alt="" loading="lazy">').join('');
+      });
+    }
   })();
 
   // ── THE TEAM (scroll-snap carousel) ──
@@ -2115,52 +2602,309 @@
     sync();
   })();
 
-  // ── OUR SOLUTION (scroll-driven stages) ──
-  (function() {
-    const sc = document.getElementById('stgContainer');
-    const pb = document.getElementById('stgPb');
-    const dotNav = document.getElementById('stgDotNav');
-    if (!sc) return;
-    const stages = sc.querySelectorAll('.stg-stage');
-    const dots = dotNav ? dotNav.querySelectorAll('.stg-dot') : [];
-    const N = stages.length;
-    let current = 0;
-    function activate(idx) {
-      if (idx === current) return;
-      stages.forEach((s, i) => s.classList.toggle('active', i === idx));
-      dots.forEach((d, i) => d.classList.toggle('on', i === idx));
-      current = idx;
+  // ── OUR SOLUTION (scroll-driven stacking pillars) ──
+  (function () {
+    /* Scroll-progress boundaries through #stgContainer. Tune timing here. */
+    const STG_PHASE = { eff: 0.30, dur: 0.60, summary: 0.85 };
+
+    /* Single source of truth: desktop and mobile render from this. */
+    const PILLARS = [
+      { id: 'cost', title: 'Cost', icon: 'brand_assets/cost.png',
+        sub: "Matches the world's lowest stack prices",
+        bullets: ['5x lower than Western-manufactured stacks',
+                  'High current density: more hydrogen from every stack',
+                  'No platinum-group metals or iridium'] },
+      { id: 'eff', title: 'Efficiency', icon: 'brand_assets/efficiency.png',
+        sub: '97% HHV at 0.5 A/cm²',
+        bullets: ['High efficiency across a wide operating range',
+                  'Keeps producing at low load when renewable output drops',
+                  'Absorbs curtailment and price volatility'] },
+      { id: 'dur', title: 'Durability', icon: 'brand_assets/durability.png',
+        sub: 'Engineered for intermittent renewables',
+        bullets: ['Built for ramping, shutdowns and cycling',
+                  'Validated over >10,000 start-stop cycles',
+                  'Resistant to reverse currents and impurity poisoning'] },
+    ];
+
+    const sc     = document.getElementById('stgContainer');
+    const panels = document.getElementById('stgPanels');
+    if (!sc || !panels) return;
+
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+                              .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+    panels.innerHTML = PILLARS.map((p, i) =>
+      '<div class="stg-pillar" data-i="' + i + '">' +
+        '<button type="button" class="stg-ph" id="stgPh' + i + '"' +
+                ' aria-expanded="true" aria-controls="stgPanel' + i + '">' +
+          '<span class="stg-step-n"><img src="' + esc(p.icon) + '" alt="" loading="lazy"></span>' +
+          '<span class="stg-ph-text">' +
+            '<span class="stg-item-title">' + esc(p.title) + '</span>' +
+            '<span class="stg-item-sub">' + esc(p.sub) + '</span>' +
+          '</span>' +
+        '</button>' +
+        '<div class="stg-panel" id="stgPanel' + i + '" role="region" aria-labelledby="stgPh' + i + '">' +
+          '<div><div class="stg-copy"><ul>' +
+            p.bullets.map(b => '<li>' + esc(b) + '</li>').join('') +
+          '</ul></div></div>' +
+        '</div>' +
+      '</div>').join('');
+
+    const items  = [...panels.querySelectorAll('.stg-pillar')];
+    const heads  = [...panels.querySelectorAll('.stg-ph')];
+    const N      = items.length;
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const isStack = () => MQ_STG.matches && !reduce.matches;
+
+    /* step: 0..N-1 = that pillar open and the ones before it collapsed;
+       N = summary, everything visible and collapsed. openIdx overrides the
+       open pillar once the visitor clicks one in the summary state. */
+    let step = 0, openIdx = -1, pinned = 0;
+
+    function paint(st, open) {
+      items.forEach((el, i) => {
+        const reached = st === N ? true : i <= st;
+        const isOpen  = st === N ? i === open : i === st;
+        el.classList.toggle('is-hidden', !reached);
+        el.classList.toggle('is-open', reached && isOpen);
+        el.classList.toggle('is-collapsed', reached && !isOpen);
+        heads[i].setAttribute('aria-expanded', String(reached && isOpen));
+        /* Unreached pillars keep their space but must not take focus. */
+        heads[i].tabIndex = reached ? 0 : -1;
+        heads[i].setAttribute('aria-hidden', reached ? 'false' : 'true');
+      });
     }
-    function update() {
-      if (!MQ_STG.matches) {   // static card stack below 1024px
-        if (pb) pb.classList.remove('visible');
-        if (dotNav) dotNav.classList.remove('visible');
-        return;
+
+    /* Pin the column to its tallest state so nothing above it ever moves. */
+    function measure() {
+      if (!isStack()) { panels.style.height = ''; return; }
+      const prevStep = step, prevOpen = openIdx;
+      panels.style.height = 'auto';
+      sc.classList.add('stg-measuring');
+      let max = 0;
+      for (let i = 0; i < N; i++) {
+        paint(i, -1);
+        max = Math.max(max, panels.scrollHeight);
       }
-      const rect = sc.getBoundingClientRect();
-      const H = sc.offsetHeight, viewH = window.innerHeight;
-      const inView = rect.top < viewH && rect.bottom > 0;
-      if (pb) pb.classList.toggle('visible', inView);
-      if (dotNav) dotNav.classList.toggle('visible', inView);
-      const progress = Math.max(0, Math.min(1, -rect.top / (H - viewH)));
-      if (pb) pb.style.width = (progress * 100) + '%';
-      activate(Math.min(N - 1, Math.floor(progress * N)));
+      paint(N, -1);                                  // summary: all collapsed
+      max = Math.max(max, panels.scrollHeight);
+      pinned = Math.ceil(max);
+      panels.style.height = pinned + 'px';
+      paint(prevStep, prevOpen);
+      /* Force a reflow before re-enabling transitions, or restoring the
+         previous state animates from the measuring state. */
+      void panels.offsetHeight;
+      sc.classList.remove('stg-measuring');
     }
+
+    function progress() {
+      const rect = sc.getBoundingClientRect();
+      const range = sc.offsetHeight - window.innerHeight;
+      if (range <= 0) return 0;
+      return Math.max(0, Math.min(1, -rect.top / range));
+    }
+
+    function stepFor(p) {
+      if (p >= STG_PHASE.summary) return N;
+      if (p >= STG_PHASE.dur)     return 2;
+      if (p >= STG_PHASE.eff)     return 1;
+      return 0;
+    }
+
+    function update() {
+      if (!isStack()) return;
+      const next = stepFor(progress());
+      if (next === step) return;
+      if (next !== N) openIdx = -1;      // leaving summary drops any manual open
+      step = next;
+      paint(step, openIdx);
+    }
+
+    /* Start of each pillar's band, used by the click-to-jump behaviour. */
+    const BAND = [0, STG_PHASE.eff, STG_PHASE.dur];
+    function jumpTo(i) {
+      const range = sc.offsetHeight - window.innerHeight;
+      window.scrollTo({
+        top: sc.offsetTop + Math.min(1, BAND[i] + 0.02) * range,
+        behavior: reduce.matches ? 'auto' : 'smooth',
+      });
+    }
+
+    heads.forEach((h, i) => h.addEventListener('click', () => {
+      if (!isStack()) return;
+      if (step === N) {                  // summary: toggle, one open at a time
+        openIdx = openIdx === i ? -1 : i;
+        paint(step, openIdx);
+      } else if (i <= step) {            // before summary: scroll to that step
+        jumpTo(i);
+      }
+    }));
+
+    function applyMode() {
+      if (isStack()) {
+        measure();
+        step = stepFor(progress()); openIdx = -1;
+        paint(step, openIdx);
+      } else {
+        /* Static stack: every pillar visible and open. */
+        panels.style.height = '';
+        items.forEach((el, i) => {
+          el.classList.remove('is-hidden', 'is-collapsed');
+          el.classList.add('is-open');
+          heads[i].setAttribute('aria-expanded', 'true');
+          heads[i].setAttribute('aria-hidden', 'false');
+          heads[i].tabIndex = 0;
+        });
+      }
+    }
+
     window.addEventListener('scroll', update, { passive: true });
-    window.addEventListener('resize', update, { passive: true });
-    MQ_STG.addEventListener('change', update);
-    update();
-    window.stgJumpTo = function(idx) {
-      const H = sc.offsetHeight, viewH = window.innerHeight;
-      window.scrollTo({ top: sc.offsetTop + (idx / N) * (H - viewH), behavior: 'smooth' });
-    };
+    window.addEventListener('resize', applyMode, { passive: true });
+    MQ_STG.addEventListener('change', applyMode);
+    reduce.addEventListener('change', applyMode);
+    applyMode();
   })();
 
-  function submitReportForm(e) {
-    e.preventDefault();
-    document.getElementById('ctaReportForm').style.display = 'none';
-    document.getElementById('ctaFormSuccess').style.display = 'block';
-  }
+  // ── REPORT FORMS (modal + CTA section) ──
+  (function () {
+    /* Google Apps Script web app, deployed with "Who has access: Anyone".
+       doPost must finish cleanly and return ContentService output: if it
+       throws, Apps Script serves an HTML error page from script.google.com
+       with no Access-Control-Allow-Origin, and the browser cannot read the
+       reply even though the request arrived. */
+    const REPORT_ENDPOINT = 'https://script.google.com/macros/s/AKfycbzyLF__H-QfKO69vrUsvC0J5e5VxO-bqRYxnUlgi6tQF_a9Wm4ek7bOO8BTNnZn51e4hA/exec';
+
+    const ERR_GENERIC = 'Something went wrong. Please try again or email info@electrogenos.com.';
+    const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
+    /* The report modal lives after this inline script in the document, so
+       every lookup below has to wait until parsing has finished. */
+    function init() {
+    const modal = document.getElementById('reportModal');
+    let lastFocus = null;
+
+    function openModal() {
+      if (!modal) return;
+      lastFocus = document.activeElement;
+      modal.classList.add('open');
+      const first = modal.querySelector('input:not([type="hidden"]):not([tabindex="-1"])');
+      if (first) first.focus();
+    }
+    function closeModal() {
+      if (!modal) return;
+      modal.classList.remove('open');
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
+    document.querySelectorAll('[data-open-report]').forEach(b => b.addEventListener('click', openModal));
+    document.querySelectorAll('[data-close-report]').forEach(b => b.addEventListener('click', closeModal));
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape' && modal && modal.classList.contains('open')) closeModal();
+    });
+
+    function wire(form, successEl) {
+      if (!form) return;
+      const btn    = form.querySelector('button[type="submit"]');
+      const status = form.querySelector('.form-status');
+      const label  = btn ? btn.innerHTML : '';
+
+      function setErr(field, msg) {
+        const el = field.getAttribute('aria-describedby');
+        const box = el ? document.getElementById(el) : null;
+        if (box) box.textContent = msg || '';
+        field.setAttribute('aria-invalid', msg ? 'true' : 'false');
+      }
+      function clearErrors() {
+        form.querySelectorAll('.field-err').forEach(p => { p.textContent = ''; });
+        form.querySelectorAll('[aria-invalid]').forEach(f => f.setAttribute('aria-invalid', 'false'));
+        if (status) { status.textContent = ''; status.style.color = ''; }
+      }
+
+      function validate() {
+        const name    = form.elements.name;
+        const email   = form.elements.email;
+        const consent = form.elements.consent;
+        let firstBad = null;
+        if (!name.value.trim()) { setErr(name, 'Please enter your name.'); firstBad = firstBad || name; }
+        else setErr(name, '');
+        if (!email.value.trim()) { setErr(email, 'Please enter your email address.'); firstBad = firstBad || email; }
+        else if (!EMAIL_RE.test(email.value.trim())) { setErr(email, 'Please enter a valid email address, like you@company.com.'); firstBad = firstBad || email; }
+        else setErr(email, '');
+        if (!consent.checked) { setErr(consent, 'Please tick the box so we can send you the report.'); firstBad = firstBad || consent; }
+        else setErr(consent, '');
+        return firstBad;
+      }
+
+      form.addEventListener('submit', async function (e) {
+        e.preventDefault();
+        clearErrors();
+
+        const bad = validate();
+        if (bad) {
+          if (status) status.textContent = 'Please check the highlighted fields.';
+          bad.focus();
+          return;
+        }
+        /* Spam trap: silently accept and go no further. */
+        if (form.elements.website && form.elements.website.value.trim()) return;
+
+        if (btn) { btn.disabled = true; btn.textContent = 'Sending...'; }
+
+        /* urlencoded keeps this a "simple" request: no preflight, which Apps
+           Script cannot answer. Read the reply if the browser lets us, and
+           fall back to a blind send if CORS blocks it. */
+        const payload = new URLSearchParams(new FormData(form));
+        let sent = false;
+        try {
+          const res = await fetch(REPORT_ENDPOINT, {
+            method: 'POST', body: payload, redirect: 'follow',
+          });
+          const text = await res.text();
+          if (!res.ok) throw new Error('HTTP ' + res.status);
+          /* Apps Script answers 200 even when it reports a failure, and serves
+             an HTML error page if doPost throws, so the body decides. */
+          let data = null;
+          try { data = JSON.parse(text); } catch (_) {}
+          if (!data || data.ok !== true) throw new Error('Endpoint did not return ok:true');
+          sent = true;
+        } catch (readErr) {
+          /* The request may well have been recorded — we just cannot see the
+             answer. Repeat it opaquely; completing without throwing is the
+             only signal available in no-cors mode. */
+          try {
+            await fetch(REPORT_ENDPOINT, {
+              method: 'POST', body: payload, mode: 'no-cors', redirect: 'follow',
+            });
+            sent = true;
+          } catch (sendErr) {
+            /* Offline or DNS failure: nothing was sent. */
+          }
+        }
+
+        if (sent) {
+          form.style.display = 'none';
+          if (successEl) successEl.style.display = 'block';
+          form.reset();
+        } else {
+          /* Only a genuine send failure (offline, DNS) reaches here. The
+             visitor keeps everything they typed. */
+          if (status) { status.textContent = ERR_GENERIC; status.style.color = '#B91C1C'; }
+          if (btn) { btn.disabled = false; btn.innerHTML = label; }
+        }
+      });
+
+      /* Clear a field's error as soon as the visitor fixes it. */
+      form.querySelectorAll('input').forEach(f => f.addEventListener('input', () => {
+        if (f.getAttribute('aria-invalid') === 'true') setErr(f, '');
+      }));
+    }
+
+    wire(document.getElementById('ctaReportForm'), document.getElementById('ctaFormSuccess'));
+    wire(document.getElementById('modalReportForm'), document.getElementById('reportSuccess'));
+    }
+
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+    else init();
+  })();
 
   // ── SCROLL RESET ──
   (function() {
@@ -2173,16 +2917,43 @@
 
 <!-- ── REPORT MODAL ── -->
 <div class="report-modal" id="reportModal">
-  <div class="report-backdrop" onclick="document.getElementById('reportModal').classList.remove('open')"></div>
+  <div class="report-backdrop" data-close-report></div>
   <div class="report-box">
-    <button class="report-close" onclick="document.getElementById('reportModal').classList.remove('open')">&times;</button>
+    <button type="button" class="report-close" data-close-report aria-label="Close">&times;</button>
     <h3>Request a Report</h3>
     <p class="report-sub">We'll send you our full technical and commercial report</p>
-    <form onsubmit="this.style.display='none';document.getElementById('reportSuccess').style.display='block';return false;">
-      <div class="cta-field"><label>Name</label><input type="text" placeholder="Your full name" required></div>
-      <div class="cta-field"><label>Email</label><input type="email" placeholder="you@company.com" required></div>
-      <div class="cta-field"><label>Organisation</label><input type="text" placeholder="Company or institution" required></div>
-      <button type="submit" class="btn" style="width:100%;margin-top:8px;">Submit &nbsp;→</button>
+    <form id="modalReportForm" novalidate>
+        <input type="hidden" name="source" value="modal">
+        <div class="hp-field" aria-hidden="true">
+          <label for="mf-website">Leave this field empty</label>
+          <input type="text" id="mf-website" name="website" tabindex="-1" autocomplete="off">
+        </div>
+        <div class="cta-field">
+          <label for="mf-name">Name</label>
+          <input type="text" id="mf-name" name="name" placeholder="Your full name"
+                 autocomplete="name" required aria-describedby="mf-name-err">
+          <p class="field-err" id="mf-name-err"></p>
+        </div>
+        <div class="cta-field">
+          <label for="mf-email">Email</label>
+          <input type="email" id="mf-email" name="email" placeholder="you@company.com"
+                 autocomplete="email" required aria-describedby="mf-email-err">
+          <p class="field-err" id="mf-email-err"></p>
+        </div>
+        <div class="cta-field">
+          <label for="mf-org">Organisation</label>
+          <input type="text" id="mf-org" name="organisation" placeholder="Company or institution"
+                 autocomplete="organization" aria-describedby="mf-org-err">
+          <p class="field-err" id="mf-org-err"></p>
+        </div>
+        <label class="consent-row" for="mf-consent">
+          <input type="checkbox" id="mf-consent" name="consent" value="yes" required
+                 aria-describedby="mf-consent-err">
+          <span>I agree to Electrogenos storing my details to send me the report and related updates.</span>
+        </label>
+        <p class="field-err" id="mf-consent-err"></p>
+      <button type="submit" class="btn" style="width:100%;margin-top:8px;">Submit &nbsp;&rarr;</button>
+        <p class="form-status" role="status" aria-live="polite"></p>
     </form>
     <div id="reportSuccess" style="display:none;padding:20px;background:#f0fdf4;border:1px solid #86efac;border-radius:10px;color:#166534;font-size:16px;font-weight:600;">✓ Thanks! We'll send the report to your inbox shortly</div>
   </div>

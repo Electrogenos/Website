@@ -31,3 +31,6 @@ build/
 # Source originals for brand_assets/industries/*.avif — byte-identical
 # duplicates, never referenced by the site.
 brand_assets/stock images/
+
+# Local source folder for logo originals; the site uses recognition/
+logos/
