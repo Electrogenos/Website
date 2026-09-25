@@ -935,7 +935,7 @@
        ════════════════════════════════════════════════════════════════════ */
     @media (min-width: 64rem) {
       /* ── TRADEOFF: sticky "pick two" triangle ── */
-      .tradeoff-track { height: 180vh; }
+      .tradeoff-track { height: 300vh; }
       .tradeoff-sticky {
         position: sticky; top: 0; height: 100vh;
         justify-content: flex-start;
@@ -1940,6 +1940,22 @@
         body: 'Surviving the ramping and shutdowns of solar and wind means conservative designs or added protection, at the expense of cost and output.' },
     ];
 
+    /* Scroll-timeline boundaries as fractions of scrollRaw (0-1 through
+       #tradeoffTrack). The track is 300vh, so the range is 200vh and the
+       0.40 hold is ~80vh — nearly a full screen of reading time before
+       anything starts to move. Tune timing here only. */
+    const PHASE = {
+      hold: 0.40,            // captions start fading
+      capsOut: 0.50,         // captions gone; convergence begins
+      converge: 0.68,        // bubbles meet; burst begins
+      burst: 0.78,           // burst complete
+      brand: 0.74,           // brand block appears
+      ripple: 0.90,          // "locked" ripple fires
+      rippleReset: 0.80,     // ripple re-arms below this
+      headFadeStart: 0.66,
+      headFadeEnd: 0.76,
+    };
+
     const track  = document.getElementById('tradeoffTrack');
     const brand  = document.getElementById('tradeoffBrand');
     const stage  = document.getElementById('trdStage');
@@ -2029,9 +2045,9 @@
        each phase exactly. */
     function render(scrollRaw, ts) {
       if (!laidOut && !layout()) return;
-      const capP      = clamp01((scrollRaw - 0.15) / 0.10);   // 0.15–0.25 captions out
-      const convergeP = clamp01((scrollRaw - 0.25) / 0.20);   // 0.25–0.45 converge
-      const burstP    = clamp01((scrollRaw - 0.45) / 0.10);   // 0.45–0.55 burst
+      const capP      = clamp01((scrollRaw - PHASE.hold)     / (PHASE.capsOut  - PHASE.hold));
+      const convergeP = clamp01((scrollRaw - PHASE.capsOut)  / (PHASE.converge - PHASE.capsOut));
+      const burstP    = clamp01((scrollRaw - PHASE.converge) / (PHASE.burst    - PHASE.converge));
       const conv      = easeIn3(convergeP);
       const floatK    = 1 - convergeP;                        // float stops as they meet
       const pts = [];
@@ -2087,15 +2103,16 @@
       const range = track.offsetHeight - window.innerHeight;
       if (rect.top > window.innerHeight || rect.bottom < 0 || range <= 0) return;
       scrollRaw = clamp01(-rect.top / range);
-      if (scrollRaw > 0.50) brand.classList.add('shown'); else brand.classList.remove('shown');
+      if (scrollRaw > PHASE.brand) brand.classList.add('shown'); else brand.classList.remove('shown');
       /* Heading holds through the reading and caption phases, then clears the
          screen so the brand reveal owns it. */
-      if (header) header.style.opacity = (1 - clamp01((scrollRaw - 0.40) / 0.10)).toFixed(3);
-      if (scrollRaw > 0.82 && !rippleFired) {
+      if (header) header.style.opacity =
+        (1 - clamp01((scrollRaw - PHASE.headFadeStart) / (PHASE.headFadeEnd - PHASE.headFadeStart))).toFixed(3);
+      if (scrollRaw > PHASE.ripple && !rippleFired) {
         rippleFired = true; brand.classList.add('locked');
         setTimeout(() => brand.classList.remove('locked'), 1400);
       }
-      if (scrollRaw < 0.65) rippleFired = false;
+      if (scrollRaw < PHASE.rippleReset) rippleFired = false;
     }
     window.addEventListener('scroll', onScroll, { passive: true });
 
